@@ -2,28 +2,47 @@ from hashlib import sha256
 import json
 import random
 
+from blockchain.Modelo.Transaccion import Transaccion
+
+
 class Block:
 
-    #atributo donde luego almacenaré el hash
-    hash=None
-    indice=0
-    datos="genesis"
-    fecha="fecha"
-    prev_hash="apunto al anterior"
-    token=None
-    aleatorio=0 #atributo para que un bloque con los mismos datos genere un hash distinto
+    #las transacciones serán objetos, para poder cifrarlos, pero para almacenarlos en el diccionarió, solo serán una tupla con 2 datos, la fecha y el dato
 
-    def __init__(self,indice,datos,fecha,prev_hash ,token):
-        self.indice=indice
-        self.datos=datos
-        self.fecha=fecha
-        self.prev_hash =prev_hash
-        self.token=token
+
+    def __init__(self):
+        #atributo donde luego almacenaré el hash
+        self.hash=None
+        self.indice=0
+        self.transacciones={}
+        self.fecha="fecha"
+        self.prev_hash="apunto al anterior"
+        #token=None
+        self.Nonce=0         #atributo para que un bloque con los mismos datos genere un hash distinto
+        self.MAX_TRANS=10        #numero maximo de transacciones por bloque
+        self.trabajo='abc'
+
+
 
     def compute_hash(self):
-        block_string = json.dumps(self.__dict__, sort_keys=True)
+        block_string = json.dumps(self.__dict__, sort_keys=False)
         resultado=sha256(block_string.encode()).hexdigest()
         return resultado
+
+    def add_transaccion(self,transaccion,fecha):
+        transaccion=Transaccion(transaccion,fecha)
+        hashT=transaccion.compute_hash()
+
+        while(not hashT.startswith(self.trabajo)):
+            transaccion.Nonce+=1
+            hashT=transaccion.compute_hash()
+
+        #le doy valor al hash, que hasta ahora no tenia valor
+        transaccion.hash=hashT
+
+        self.transacciones[hashT]=(transaccion.fecha,transaccion.dato,transaccion.Nonce)
+        print("el hash de la transaccion es",hashT)
+        return hashT
 
     def set_hash(self,hash):
         self.hash=hash
@@ -37,11 +56,9 @@ class Block:
     def get_indice(self):
         return self.indice
 
-    def random(self):
-        self.aleatorio=random.randint(0,50)
 
-    def get_datos(self):
-        return self.datos
-
-    def get_token(self):
-        return self.token
+    #si el bloque ya esta completo devolvera true, si no devolvera false
+    def completo(self):
+        return len(self.transacciones)>=self.MAX_TRANS
+    def get_transacciones(self):
+        return self.transacciones

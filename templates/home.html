@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Blockchain</title>
+<!--    <script type="text/javascript" src="https://ff.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=TnKQQIT9V1FSjIXrrBT0XzJIH0eWhr7h1GPsePd1QBcgc7A2kxfeU3IS1wjpKLOzXBHzzxYoPiKEKs5plzaSYqwOOfP7cgmvrqpCwpSP0OJYjcVjugZM2ey7YURNJhBltgOF6SymDoNvXaUXh4YWqw" charset="UTF-8"></script>-->
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+
+    <style>
+        .welcome {
+            font-family:DejaVu Sans Mono;
+            color:#13e227;
+            font-size:32pt;
+            text-align:center;
+            font-weight: bold;
+        }
+        p.body{
+            font-family:DejaVu Sans Mono;
+            color:#222222;
+            font-weight: bold;
+        }
+        .titulo{
+            border-radius: 5px;
+            padding: 5px;
+            background-color:#222222
+        }
+        .botonDescargar{
+            text-decoration: none;
+
+            color: #ffffff;
+            background-color: #4169E1;
+            border-radius: 6px;
+            border: 2px solid #0016b0;
+            transition: background-color .3s;
+          }
+          .botonDescargar:hover{
+            color: #4169E1;
+            background-color: #ffffff;
+
+        }
+        .grid-container2 {
+          display: grid;
+          grid-template-columns: auto auto auto;
+            grid-gap: 10px;
+        }
+
+        .grid-container2 > div {
+
+          text-align: center;
+
+
+        }
+    </style>
+</head>
+<body style="background-color:grey" >
+ <div class="titulo" >
+     <p style="text-align:center;">
+     <a class="welcome" href="/" >Blockchain</a></p></div>
+
+<div class="container">
+
+<br>
+    <div class="container" >
+    <p class="body">Insertar una transacción</p>
+<form action="/add" method="POST" >
+     <input class="form-control"  type="search" id="transaccionDatos" name="transaccionDatos" placeholder="Transaccion">
+    <br>
+    <input class="botonDescargar" type="submit" value="Enviar">
+
+</form>
+
+    <p style="color:red;font-family:DejaVu Sans Mono;font-weight: bold;font-size:15pt;">{{error}}</p>
+</div>
+ <div class="container" >
+  <p class="body">Consultar transaccion </p>
+<form action="/consulta" method="POST" >
+     <input class="form-control"  type="search" id="consulta" name="consulta" placeholder="Token">
+    <br>
+    <input class="botonDescargar" type="submit" value="Consulta">
+
+</form>
+     <br>
+
+ </div>
+    <div class="container" >
+        <p class="body">Añadir nodo </p>
+        <form action="/add_nodes" method="POST" >
+             <input class="form-control"  type="search" id="direccion" name="direccion" placeholder="Dirección">
+            <br>
+            <input class="botonDescargar" type="submit" value="Añadir nodo">
+
+        </form>
+     <br>
+
+ </div>
+     </div>
+    <div class="container" >
+        <p class="body">Añadir nodo </p>
+        <form action="/chain" method="POST" >
+
+            <br>
+            <input class="botonDescargar" type="submit" value="Devolver cadena">
+
+        </form>
+     <br>
+
+ </div>
+    <div class="container">
+        <form action="/mine" mehtod="GET">
+
+
+                <input  type="submit" class="botonDescargar" role="button"  name="Minar" value="Minar" >
+
+        </form>
+
+    </div>
+
+
+    <div class="container">
+        <form action="/mine" mehtod="GET">
+            {%if consulta%}
+                <p class="body">Transacción añadida cuyo hash es: {{token}}</p>
+
+
+            {%endif%}
+        </form>
+
+    </div>
+   <div class="container">
+        {%if respuestaConsulta%}
+            <p class="body">{{resultadoConsulta}} </p>
+
+        {%endif%}
+
+    </div>
+<div class="container">
+        {%if minado==1%}
+
+            <p class="body">El bloque con el indice {{indice}} se ha minado correctamente.</p>
+
+        {%elif minado==-1%}
+            <p class="body">No hay transacciones para minar.</p>
+        {%endif%}
+
+    </div>
+
+    </div>
+
+<p style="color:red;font-family:DejaVu Sans Mono;font-weight: bold;font-size:15pt;">{{error}}</p>
+</div>
+</body>
+
+
+</html>
