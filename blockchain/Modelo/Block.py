@@ -1,6 +1,7 @@
 from hashlib import sha256
 import json
 import random
+from pprint import pprint
 
 from blockchain.Modelo.Transaccion import Transaccion
 
@@ -12,7 +13,7 @@ class Block:
 
     def __init__(self):
         #atributo donde luego almacenaré el hash
-        self.hash=None
+        self._id=None #he cambiado la palabra hash, por _id, para poderlo almacenar en mongodb con el hash como id, en vez de que me cree el uno propio
         self.indice=0
         self.transacciones={}
         self.fecha="fecha"
@@ -41,14 +42,14 @@ class Block:
         transaccion.hash=hashT
 
         self.transacciones[hashT]=(transaccion.fecha,transaccion.dato,transaccion.Nonce)
-        print("el hash de la transaccion es",hashT)
+
         return hashT
 
     def set_hash(self,hash):
-        self.hash=hash
+        self._id=hash
 
     def get_hash(self):
-        return self.hash
+        return self._id
 
     def get_prev_hash(self):
         return self.prev_hash
@@ -62,3 +63,5 @@ class Block:
         return len(self.transacciones)>=self.MAX_TRANS
     def get_transacciones(self):
         return self.transacciones
+    def toString(self):
+        return json.dumps(self.__dict__,sort_keys=False)

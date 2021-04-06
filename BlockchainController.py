@@ -56,7 +56,7 @@ def new_transaction():
 
     hashT=blockchain.add_new_transaction(tx_data)
 
-    return render_template("home.html",consulta=True,token=hashT)
+    return render_template("home.html",consultaT=True,token=hashT)
 
 @app.route('/consulta', methods=['POST'])
 def consulta():
@@ -70,9 +70,16 @@ def get_chain():
     blockchain=blockchain1[-1]
     chain_data = []
     for block in blockchain.get_cadena():
-        chain_data.append(block.__dict__)
+        if(block.indice==0):
+            chain_data.append((block.indice,block.hash,block.fecha))
+        else:
+            transacciones=block.transacciones
+            tuplas=[]
+            for transaccion in transacciones:
+                tuplas.append((transaccion,transacciones[transaccion][0],transacciones[transaccion][1]))
+            chain_data.append((block.indice,block.hash,block.fecha,tuplas))
     pprint(chain_data)
-    return render_template("consultabloques.html",chain_data=chain_data)
+    return render_template("home.html",consulta=True,chain_data=chain_data)
 
 
 

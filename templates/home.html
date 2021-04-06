@@ -125,9 +125,11 @@
 
     <div class="container">
         <form action="/mine" mehtod="GET">
-            {%if consulta%}
+            {%if consultaT and token%}
                 <p class="body">Transacción añadida cuyo hash es: {{token}}</p>
 
+            {%elif consultaT and not token%}
+            <p class="body">No es una transaccion valida</p>
 
             {%endif%}
         </form>
@@ -149,6 +151,33 @@
             <p class="body">No hay transacciones para minar.</p>
         {%endif%}
 
+    </div>
+ <div class="container">
+        {%if consulta%}
+
+            {%for bloque in chain_data%}
+            <div>
+
+                {% if bloque.0 == 0%}
+                    <p class="body">Indice del bloque es: {{bloque.0}}</p>
+                    <p class="body">Su hash es: {{bloque.1}}</p>
+                    <p class="body">Fecha: {{bloque.2}}</p>
+
+                {%else%}
+                <p class="body">Indice del bloque es: {{bloque.0}}</p>
+                    <p class="body">Su hash es: {{bloque.1}}</p>
+                    <p class="body">Fecha: {{bloque.2}}</p>
+                    <p class="body">Transacciones: </p>
+                {%for transaccion in bloque.3%}
+                    <p class="body">-> Hash de la transaccion {{transaccion.0}} </p>
+                    <p class="body">-> Fecha de la transaccion {{transaccion.1}} </p>
+                    <p class="body">-> Dato de la transaccion {{transaccion.2}} </p>
+                {%endfor%}
+                {%endif%}
+            </div>
+
+            {%endfor%}
+        {%endif%}
     </div>
 
     </div>

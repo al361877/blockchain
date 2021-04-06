@@ -1,8 +1,12 @@
+import json
 from pprint import pprint
 
 from django.utils.crypto import get_random_string
 import time
 from blockchain.Modelo.Block import Block
+
+from blockchain.datos import BaseDeDatos
+
 
 class Blockchain:
     # difficulty of our PoW algorithm
@@ -23,17 +27,17 @@ class Blockchain:
         """
         genesis_block = Block()
         genesis_block.indice=0
-        genesis_block.datos="genesis"
-        genesis_block.fecha=time.time()
+        genesis_block.transacciones="genesis"
+        genesis_block.fecha=time.ctime(time.time())
 
 
-        self.prueba_de_trabajo(genesis_block)
+        hash=self.prueba_de_trabajo(genesis_block)
 
-
+        genesis_block.set_hash(hash)
 
         self.__cadena.append(genesis_block)
 
-    @property
+
     def last_block(self):
         return self.__cadena[-1]
 
@@ -51,18 +55,18 @@ class Blockchain:
         #comprueba si el último bloque que hay en la lista de bloques, es el mismo al que apunta mi bloque, si no es el correcto, de
         #devuelvo falso y termino
         if previous_hash != block.get_prev_hash():
-            print("no coincide el hash")
+
             return False
 
         #comprueba que el bloque sea valido, si no lo es, devuelvo falso
         if not self.is_valid_proof(block, proof):
-            print("no es valido")
+
             return False
 
         #le asigno el hash al bloque
         block.set_hash(proof)
 
-        print("añado bloque")
+
         #lo añado en la cadena
         self.__cadena.append(block)
 
@@ -90,22 +94,22 @@ class Blockchain:
             block.Nonce+=1
             computed_hash = block.compute_hash()
 
-        print("Hash de",block.get_transacciones() ,"=",computed_hash)
+
 
         return computed_hash
 
     def add_new_transaction(self, transaction):
-        if transaction is "":
+        if transaction == " "*len(transaction):
             return False
 
 
         #si el bloque que tengo que minar aun no esta lleno, le meto la transacción, si ya lo está, lo mino y añado uno nuevo
         if(not self.__bloque_sin_minar.completo()):
-            hashT=self.__bloque_sin_minar.add_transaccion(transaction,time.time())
+            hashT=self.__bloque_sin_minar.add_transaccion(transaction,time.ctime(time.time()))
         else:
             self.mine()
             bloqueNuevo=self.__bloque_sin_minar=Block()
-            hashT=bloqueNuevo.add_transaccion(transaction,time.time())
+            hashT=bloqueNuevo.add_transaccion(transaction,time.ctime(time.time()))
         return hashT
 
     def mine(self):
@@ -122,13 +126,13 @@ class Blockchain:
         #cojo el bloque sin minar y lo mino
         bloque=self.__bloque_sin_minar
         bloque.indice=last_block.get_indice()+1
-        bloque.fecha=time.time()
+        bloque.fecha=time.ctime(time.time())
         bloque.prev_hash=last_block.get_hash()
 
         #hago la prueba de trabajo para crear un hash bueno y se lo añado
         proof = self.prueba_de_trabajo(bloque)
         self.add_block(bloque, proof)
-
+        self.__bloque_sin_minar=Block()
         return bloque.get_indice()
 
     # #si está el token en la cadena de bloques, es que el bloque está y devuelvo 1.
@@ -155,9 +159,33 @@ class Blockchain:
     def get_transacciones(self):
         return self.__bloque_sin_minar.get_transacciones()
 
+    def almacenar(self):
+        '''
+        Aqui almacenaré la blockchain, para poder disponer de ella una vez vuelva a ejecutar el programa o después de volver a arrancar la máquina
+        '''
+        #almaceno el 'ultimo bloque
+        BaseDeDatos.almacenarBlockchain(self.__cadena)
+
 if __name__=="__main__":
     blockchain=Blockchain()
     for i in range(3):
-        blockchain.add_new_transaction(i)
-    pprint(blockchain.get_transacciones())
+        cadena="{}".format(i)
+        blockchain.add_new_transaction(cadena)
+
+
     blockchain.mine()
+    bloque=blockchain.last_block()
+    blockchain.almacenar()
+    hash=bloque.get_hash()
+
+    # BaseDeDatos.consultaDatos()
+    BaseDeDatos.consultaUnBloque(hash)
+    BaseDeDatos.eliminarDatos()
+
+
+
+
+
+
+
+
