@@ -10,28 +10,45 @@ myclient = pymongo.MongoClient('mongodb://localhost:27017/')
 
 db=myclient['blockchain']
 col=db['bloques']
+col2=db['transacciones']
+
+def almacenar_genesis(genesis):
+    dato = genesis.__dict__
+    col.insert(dato)
 
 def almacenarBloque(bloque):
-    dato=json.dumps(bloque.__dict__)
-    print(dato)
-def almacenarBlockchain(lista):
+    dato=bloque.__dict__
+    col.insert(dato)
+    transacciones = bloque.get_transacciones()
+    for transaccion in transacciones:
+        col2.insert(
+            {"_id": transaccion, "fecha": transacciones[transaccion][0], "dato": transacciones[transaccion][1],
+             "nonce": transacciones[transaccion][2]})
 
+def almacenarBlockchain(lista):
     for elemento in lista:
-        dato=elemento.__dict__
-        x=col.insert(dato)
-        print(x)
+        almacenarBloque(elemento)
+
+
 def consultaDatos():
     for x in col.find():
-        print(x)
-def consultaUnaTransaccion():
-    pass
+        yield x
+
+
+def consultaUnaTransaccion(hash):
+    myquery = {"_id": hash}
+    mydoc = col2.find(myquery)
+    for x in mydoc:
+        yield x
 
 def consultaUnBloque(hash):
     myquery={"_id":hash}
     mydoc=col.find(myquery)
     for x in mydoc:
-        print(x["transacciones"])
+        yield x
 
 def eliminarDatos():
     x=col.delete_many({})
     print(x.deleted_count,"documents deleted")
+    y=col2.delete_many({})
+    print(y.deleted_count,"documents deleted")

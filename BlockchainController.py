@@ -1,14 +1,13 @@
 from pprint import pprint
 
 from flask import Flask, request, render_template
-from hashlib import sha256
-import random
+
 import requests
 from blockchain.Modelo.Bolckchain import Blockchain
-import time
+
 import json
 from blockchain.Modelo.Block import Block
-
+from blockchain.datos import BaseDeDatos
 
 app =  Flask(__name__)
 CONNECTED_NODE_ADDRESS = "http://127.0.0.1:8000"
@@ -46,13 +45,7 @@ def new_transaction():
     #dato de la transacción
     tx_data = request.form['transaccionDatos']
 
-    # campos_obligatorios = ["autor", "contenido"]
-    #
-    # for campo in campos_obligatorios:
-    #     if not tx_data.get(campo):
-    #         return "Invlaid transaction data", 404
 
-    # tx_data["fecha"] = time.time()
 
     hashT=blockchain.add_new_transaction(tx_data)
 
@@ -219,3 +212,48 @@ def submit_textarea():
                   headers={'Content-type': 'application/json'})
 
     return render_template('/')
+
+
+##############     A PARTIR DE AQUI, VOY A TRATAR CON LA BASE DE DATOS        ##############
+
+def almacenar():
+    '''
+    Aqui almacenaré la blockchain, para poder disponer de ella una vez vuelva
+    a ejecutar el programa o después de volver a arrancar la máquina
+    '''
+
+    #almaceno el 'ultimo bloque
+    blockchain=blockchain1[-1]
+    BaseDeDatos.almacenarBlockchain(blockchain.get_cadena())
+
+def consultaBloque(hash):
+    bloque = []
+    for dato in BaseDeDatos.consultaUnBloque(hash):
+        bloque.append(dato)
+    return bloque
+
+
+def consultaTransaccion(hashT):
+    transaccion = []
+    for dato in BaseDeDatos.consultaUnaTransaccion(hashT):
+        transaccion.append(dato)
+    return transaccion
+
+
+def consultaBlockchain():
+    blockchain=[]
+    for block in BaseDeDatos.consultaDatos():
+        blockchain.append(block)
+    return blockchain
+
+def add_block_db(block):
+    '''''
+    En este caso, este metodo guardara el bloque en la base de datos, en vez de localmente en el programa.
+    '''
+    BaseDeDatos.almacenarBloque(block)
+
+def add_genesis(genesis):
+    BaseDeDatos.almacenar_genesis(genesis)
+
+def eliminarDatos():
+    BaseDeDatos.eliminarDatos()

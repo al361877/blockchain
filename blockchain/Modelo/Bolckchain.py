@@ -1,8 +1,9 @@
-import json
-from pprint import pprint
 
-from django.utils.crypto import get_random_string
+
+
 import time
+
+import BlockchainController
 from blockchain.Modelo.Block import Block
 
 from blockchain.datos import BaseDeDatos
@@ -13,6 +14,7 @@ class Blockchain:
     difficulty = 2
     trabajo='abc'
 
+    controller = BlockchainController
     def __init__(self):
         self.__transacciones_no_confirmadas = []
         self.__cadena = []
@@ -36,6 +38,8 @@ class Blockchain:
         genesis_block.set_hash(hash)
 
         self.__cadena.append(genesis_block)
+
+        self.controller.add_genesis(genesis_block)
 
 
     def last_block(self):
@@ -70,6 +74,8 @@ class Blockchain:
         #lo añado en la cadena
         self.__cadena.append(block)
 
+        #lo meto en la base de datos
+        self.controller.add_block_db(block)
 
         return True
 
@@ -135,23 +141,7 @@ class Blockchain:
         self.__bloque_sin_minar=Block()
         return bloque.get_indice()
 
-    # #si está el token en la cadena de bloques, es que el bloque está y devuelvo 1.
-    # #Si aun no se ha confirmado la transacción devolverá -2 y si no está en ningun lado es que el token no pertenece a ninguna transacción y devolverá -1
-    # def consulta_transaccion(self,token):
-    #     #aun no se ha confirmado la transacción
-    #     cadena=""
-    #     for transaccion in self.__transacciones_no_confirmadas:
-    #         if transaccion[1]==token:
-    #
-    #             return "La transacción con el token "+token+" aun no ha sido confirmada"
-    #
-    #     #la transacción ha sido confirmada y está el bloque creado
-    #     for block in self.__cadena:
-    #         if block.get_token() == token:
-    #             return "La transacción con el token "+token+" ya ha sido confirmada"
-    #
-    #     #no existe esa transacción
-    #     return "La transacción con el token "+token+" comprueba que hayas escrito correctamente el token."
+
 
     def get_cadena(self):
         return self.__cadena
@@ -159,28 +149,28 @@ class Blockchain:
     def get_transacciones(self):
         return self.__bloque_sin_minar.get_transacciones()
 
-    def almacenar(self):
-        '''
-        Aqui almacenaré la blockchain, para poder disponer de ella una vez vuelva a ejecutar el programa o después de volver a arrancar la máquina
-        '''
-        #almaceno el 'ultimo bloque
-        BaseDeDatos.almacenarBlockchain(self.__cadena)
+
+
+
 
 if __name__=="__main__":
     blockchain=Blockchain()
     for i in range(3):
         cadena="{}".format(i)
-        blockchain.add_new_transaction(cadena)
+        hash=blockchain.add_new_transaction(cadena)
 
 
     blockchain.mine()
     bloque=blockchain.last_block()
-    blockchain.almacenar()
-    hash=bloque.get_hash()
 
-    # BaseDeDatos.consultaDatos()
-    BaseDeDatos.consultaUnBloque(hash)
-    BaseDeDatos.eliminarDatos()
+
+    controller=BlockchainController
+    print("hash ultima transaccion:" ,hash)
+
+    print(controller.consultaBlockchain())
+    print(controller.consultaTransaccion(hash))
+    print(controller.consultaBloque(bloque.get_hash()))
+    controller.eliminarDatos()
 
 
 

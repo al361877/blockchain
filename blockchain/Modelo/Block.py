@@ -14,16 +14,16 @@ class Block:
     def __init__(self):
         #atributo donde luego almacenaré el hash
         self._id=None #he cambiado la palabra hash, por _id, para poderlo almacenar en mongodb con el hash como id, en vez de que me cree el uno propio
+
         self.indice=0
         self.transacciones={}
         self.fecha="fecha"
         self.prev_hash="apunto al anterior"
-        #token=None
         self.Nonce=0         #atributo para que un bloque con los mismos datos genere un hash distinto
         self.MAX_TRANS=10        #numero maximo de transacciones por bloque
         self.trabajo='abc'
 
-
+        #self.maquina=? #aqui ira guardado desde que maquina se ha realizado el bloque
 
     def compute_hash(self):
         block_string = json.dumps(self.__dict__, sort_keys=False)
