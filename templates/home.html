@@ -45,6 +45,20 @@
             background-color: #ffffff;
 
         }
+        .botonBorrar{
+            text-decoration: none;
+
+            color: #ffffff;
+            background-color: #c90000;
+            border-radius: 6px;
+            border: 2px solid #760000;
+            transition: background-color .3s;
+          }
+          .botonBorrar:hover{
+            color: #c90000;
+            background-color: #ffffff;
+
+        }
         .grid-container2 {
           display: grid;
           grid-template-columns: auto auto auto;
@@ -64,77 +78,60 @@
      <p style="text-align:center;">
      <a class="welcome" href="/" >Blockchain</a></p></div>
 
-<div class="container">
-
-<br>
-    <div class="container" >
-    <p class="body">Insertar una transacción</p>
-<form action="/add" method="POST" >
-     <input class="form-control"  type="search" id="transaccionDatos" name="transaccionDatos" placeholder="Transaccion">
-    <br>
-    <input class="botonDescargar" type="submit" value="Enviar">
-
-</form>
-
-    <p style="color:red;font-family:DejaVu Sans Mono;font-weight: bold;font-size:15pt;">{{error}}</p>
-</div>
- <div class="container" >
-  <p class="body">Consultar transaccion </p>
-<form action="/consulta" method="POST" >
-     <input class="form-control"  type="search" id="consulta" name="consulta" placeholder="Token">
-    <br>
-    <input class="botonDescargar" type="submit" value="Consulta">
-
-</form>
-     <br>
-
- </div>
-    <div class="container" >
-        <p class="body">Añadir nodo </p>
-        <form action="/add_nodes" method="POST" >
-             <input class="form-control"  type="search" id="direccion" name="direccion" placeholder="Dirección">
-            <br>
-            <input class="botonDescargar" type="submit" value="Añadir nodo">
-
-        </form>
-     <br>
-
- </div>
-     </div>
-    <div class="container" >
-        <p class="body">Añadir nodo </p>
-        <form action="/chain" method="POST" >
-
-            <br>
-            <input class="botonDescargar" type="submit" value="Devolver cadena">
-
-        </form>
-     <br>
-
- </div>
     <div class="container">
-        <form action="/mine" mehtod="GET">
+
+        <br>
+        <div class="container" >
+            <p class="body">Insertar una transacción</p>
+            <form action="/add" method="POST" >
+                 <input class="form-control"  type="search" id="transaccionDatos" name="transaccionDatos" placeholder="Transaccion">
+                <br>
+                <input class="botonDescargar" type="submit" value="Enviar">
+
+            </form>
 
 
-                <input  type="submit" class="botonDescargar" role="button"  name="Minar" value="Minar" >
+        </div>
+         <div class="container" >
+                <p class="body">Consultar transaccion </p>
+                <form action="/consulta" method="POST" >
+                 <input class="form-control"  type="search" id="consulta" name="consulta" placeholder="Hash">
+                <br>
+                <input class="botonDescargar" type="submit" value="Consulta">
 
-        </form>
+                </form>
+             <br>
 
-    </div>
+         </div>
+        <table>
+            <tr>
+                <td> <form action="/chain" method="POST" >
+
+                        <input class="botonDescargar" type="submit" value="Devolver cadena">
+
+                    </form>
+                </td>
+                <td>
+                    <form action="/mine" mehtod="GET">
 
 
-    <div class="container">
-        <form action="/mine" mehtod="GET">
-            {%if consultaT and token%}
-                <p class="body">Transacción añadida cuyo hash es: {{token}}</p>
+                        <input  type="submit" class="botonDescargar" role="button"  name="Minar" value="Minar" >
 
-            {%elif consultaT and not token%}
-            <p class="body">No es una transaccion valida</p>
+                    </form>
+                </td>
+                <td>
 
-            {%endif%}
-        </form>
+                     <form action="/borrar" mehtod="GET">
 
-    </div>
+
+                        <input  type="submit" class="botonBorrar" role="button"  name="Borrar" value="Borrar" >
+
+                     </form>
+                </td>
+            </tr>
+        </table>
+
+
    <div class="container">
         {%if respuestaConsulta%}
             <p class="body">{{resultadoConsulta}} </p>
@@ -148,30 +145,33 @@
             <p class="body">El bloque con el indice {{indice}} se ha minado correctamente.</p>
 
         {%elif minado==-1%}
-            <p class="body">No hay transacciones para minar.</p>
+            <p style="color:red;font-family:DejaVu Sans Mono;font-weight: bold;font-size:15pt;">No hay transacciones para minar.</p>
+
         {%endif%}
 
-    </div>
+</div>
  <div class="container">
         {%if consulta%}
 
             {%for bloque in chain_data%}
             <div>
 
-                {% if bloque.0 == 0%}
-                    <p class="body">Indice del bloque es: {{bloque.0}}</p>
-                    <p class="body">Su hash es: {{bloque.1}}</p>
-                    <p class="body">Fecha: {{bloque.2}}</p>
+                {% if bloque["indice"] == 0%}
+                    <p class="body">Indice del bloque es: {{bloque["indice"]}}</p>
+                    <p class="body">Su hash es: {{bloque["_id"]}}</p>
+                    <p class="body">Fecha: {{bloque["fecha"]}}</p>
+                    <p class="body" > Bloque genesis</p>
 
                 {%else%}
-                <p class="body">Indice del bloque es: {{bloque.0}}</p>
-                    <p class="body">Su hash es: {{bloque.1}}</p>
-                    <p class="body">Fecha: {{bloque.2}}</p>
+                    <p class="body">Indice del bloque es: {{bloque["indice"]}}</p>
+                    <p class="body">Su hash es: {{bloque["_id"]}}</p>
+                    <p class="body">Fecha: {{bloque["fecha"]}}</p>
                     <p class="body">Transacciones: </p>
-                {%for transaccion in bloque.3%}
-                    <p class="body">-> Hash de la transaccion {{transaccion.0}} </p>
-                    <p class="body">-> Fecha de la transaccion {{transaccion.1}} </p>
-                    <p class="body">-> Dato de la transaccion {{transaccion.2}} </p>
+                {%for transaccion in bloque["transacciones"]%}
+
+                    <p class="body">-> Hash de la transaccion {{transaccion}} </p>
+                    <p class="body">-> Fecha de la transaccion {{bloque["transacciones"][transaccion][0]}} </p>
+                    <p class="body">-> Dato de la transaccion {{bloque["transacciones"][transaccion][1]}} </p>
                 {%endfor%}
                 {%endif%}
             </div>
@@ -180,9 +180,11 @@
         {%endif%}
     </div>
 
+ </div>
+
+
     </div>
 
-<p style="color:red;font-family:DejaVu Sans Mono;font-weight: bold;font-size:15pt;">{{error}}</p>
 </div>
 </body>
 

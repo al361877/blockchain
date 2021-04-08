@@ -16,74 +16,90 @@ posts = []
 
 # la dirección the otros miembros que participan en la red
 peers = set()
-blockchain1=[0]
-genesisCreado=False
+blockchain=Blockchain()
+
 
 @app.route('/')
 def home():
-    global genesisCreado
+    compruebaBlockchain()
 
-    if not genesisCreado:
-        crearGenesis()
+    return render_template("home.html")
+
+#este metodo primero mira si hay una blockchain ya creada, si lo está "la carga", si no la crea
+def compruebaBlockchain():
+
+
+    bloqueGenesis=BaseDeDatos.col.find_one()
+    blockchain.set_genesis(bloqueGenesis)
+    if bloqueGenesis:
+        #si existe la base de datos solo tengo que cargar el 'ultimo bloque
+        #bloque=consultaUltimoBloque()
+        bloque=consultaUltimoBloque()
+
+        block = Block()
+        block.set_hash(bloque["_id"])
+        block.indice = bloque["indice"]
+        block.transacciones = bloque["transacciones"]
+        block.fecha = bloque["fecha"]
+        block.prev_hash = bloque["prev_hash"]
+        block.Nonce = bloque["Nonce"]
+        block.MAX_TRANS = bloque["MAX_TRANS"]
+        block.trabajo = bloque["trabajo"]
+        blockchain.cargarBlock(block)
+
+    else:
+        blockchain.crear_genesis_block()
+
+@app.route('/borrar',methods=['GET'])
+def reset():
+    resetearBlockchain()
+
     return render_template("home.html")
 
 
-
-
-
-def crearGenesis():
-    blockchain1.append(Blockchain())
-    global genesisCreado
-    genesisCreado=True
-
-    return render_template("home.html")
 
 
 @app.route('/add', methods=['POST'])
 def new_transaction():
-    blockchain=blockchain1[-1]
+
     #dato de la transacción
     tx_data = request.form['transaccionDatos']
 
 
-
-    hashT=blockchain.add_new_transaction(tx_data)
+    hashT=None
+    transaccion=blockchain.add_new_transaction(tx_data)
+    if transaccion:
+        hashT=transaccion[0]
 
     return render_template("home.html",consultaT=True,token=hashT)
 
 @app.route('/consulta', methods=['POST'])
 def consulta():
-    blockchain=blockchain1[-1]
-    token=request.form['consulta']
-    resultadoConsulta= blockchain.consulta_transaccion(token)
+
+    hash=request.form['consulta']
+    resultadoConsulta= consultaTransaccion(hash)
     return render_template("home.html",resultadoConsulta=resultadoConsulta,respuestaConsulta=True)
 
 @app.route('/chain', methods=['POST'])
 def get_chain():
-    blockchain=blockchain1[-1]
-    chain_data = []
-    for block in blockchain.get_cadena():
-        if(block.indice==0):
-            chain_data.append((block.indice,block.hash,block.fecha))
-        else:
-            transacciones=block.transacciones
-            tuplas=[]
-            for transaccion in transacciones:
-                tuplas.append((transaccion,transacciones[transaccion][0],transacciones[transaccion][1]))
-            chain_data.append((block.indice,block.hash,block.fecha,tuplas))
-    pprint(chain_data)
+
+    chain_data = consultaBlockchain()
+    for block in chain_data:
+        print(block["transacciones"])
+
     return render_template("home.html",consulta=True,chain_data=chain_data)
 
 
 
 @app.route('/mine', methods=['GET'])
 def mine_unconfirmed_transactions():
-    blockchain=blockchain1[-1]
-    result = blockchain.mine()
-    if not result:
-
+    compruebaBlockchain()
+    bloque = blockchain.mine()
+    if bloque==-1:
         return render_template("home.html",minado=-1,indice=False)
 
+    result=bloque.get_indice()
+    add_block_db(bloque)
     return render_template("home.html",minado=1,indice=result)
 
 
@@ -133,7 +149,7 @@ def consensus():
     Nuestro simple algoritmo de consenso. Si una cadena válida más larga es
     encontrada, la nuestra es reemplazada por ella.
     """
-    blockchain=blockchain1[-1]
+    global blockchain
 
     longest_chain = None
     current_len = len(blockchain)
@@ -157,7 +173,7 @@ def consensus():
 # punto de acceso para añadir un bloque minado por alguien más a la cadena del nodo.
 @app.route('/add_block', methods=['POST'])
 def validate_and_add_block():
-    blockchain=blockchain1[-1]
+
     block_data = request.get_json()
     block = Block(block_data["index"], block_data["transactions"],
                   block_data["timestamp", block_data["previous_hash"]])
@@ -223,7 +239,7 @@ def almacenar():
     '''
 
     #almaceno el 'ultimo bloque
-    blockchain=blockchain1[-1]
+    global blockchain
     BaseDeDatos.almacenarBlockchain(blockchain.get_cadena())
 
 def consultaBloque(hash):
@@ -255,5 +271,10 @@ def add_block_db(block):
 def add_genesis(genesis):
     BaseDeDatos.almacenar_genesis(genesis)
 
-def eliminarDatos():
+def resetearBlockchain():
     BaseDeDatos.eliminarDatos()
+def consultaNombre():
+    return BaseDeDatos.consultaNombre()
+
+def consultaUltimoBloque():
+    return BaseDeDatos.consultaUltimoBloque()

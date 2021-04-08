@@ -16,11 +16,10 @@ class Blockchain:
 
     controller = BlockchainController
     def __init__(self):
-        self.__transacciones_no_confirmadas = []
-        self.__cadena = []
-        self.crear_genesis_block()
-        self.__bloque_sin_minar=Block()
 
+        self.__cadena = []
+        self.__bloque_sin_minar=Block()
+        self.genesis=0
     def crear_genesis_block(self):
         """
         A function to generate genesis block and appends it to
@@ -32,7 +31,7 @@ class Blockchain:
         genesis_block.transacciones="genesis"
         genesis_block.fecha=time.ctime(time.time())
 
-
+        print("Creo el genesis")
         hash=self.prueba_de_trabajo(genesis_block)
 
         genesis_block.set_hash(hash)
@@ -40,8 +39,10 @@ class Blockchain:
         self.__cadena.append(genesis_block)
 
         self.controller.add_genesis(genesis_block)
+        self.genesis=genesis_block
 
-
+    def set_genesis(self,genesis):
+        self.genesis=genesis
     def last_block(self):
         return self.__cadena[-1]
 
@@ -74,10 +75,13 @@ class Blockchain:
         #lo añado en la cadena
         self.__cadena.append(block)
 
-        #lo meto en la base de datos
-        self.controller.add_block_db(block)
+
 
         return True
+
+    def cargarBlock(self,block):
+
+        self.__cadena.append(block)
 
     def is_valid_proof(self, block, block_hash):
         """
@@ -100,23 +104,22 @@ class Blockchain:
             block.Nonce+=1
             computed_hash = block.compute_hash()
 
-
-
         return computed_hash
+
 
     def add_new_transaction(self, transaction):
         if transaction == " "*len(transaction):
             return False
 
-
         #si el bloque que tengo que minar aun no esta lleno, le meto la transacción, si ya lo está, lo mino y añado uno nuevo
         if(not self.__bloque_sin_minar.completo()):
-            hashT=self.__bloque_sin_minar.add_transaccion(transaction,time.ctime(time.time()))
+            trans=self.__bloque_sin_minar.add_transaccion(transaction,time.ctime(time.time()))
         else:
             self.mine()
             bloqueNuevo=self.__bloque_sin_minar=Block()
-            hashT=bloqueNuevo.add_transaccion(transaction,time.ctime(time.time()))
-        return hashT
+            trans=bloqueNuevo.add_transaccion(transaction,time.ctime(time.time()))
+
+        return trans
 
     def mine(self):
 
@@ -125,12 +128,17 @@ class Blockchain:
         transactions to the blockchain by adding them to the block
         and figuring out Proof Of Work.
         """
-
+        if not self.genesis:
+            self.crear_genesis_block()
         #cojo el último bloque de la cadena para enlazarlo con el nuevo
         last_block = self.__cadena[-1]
 
         #cojo el bloque sin minar y lo mino
         bloque=self.__bloque_sin_minar
+        if not bloque.transacciones :
+            return -1
+
+
         bloque.indice=last_block.get_indice()+1
         bloque.fecha=time.ctime(time.time())
         bloque.prev_hash=last_block.get_hash()
@@ -139,12 +147,13 @@ class Blockchain:
         proof = self.prueba_de_trabajo(bloque)
         self.add_block(bloque, proof)
         self.__bloque_sin_minar=Block()
-        return bloque.get_indice()
 
+        return bloque
 
 
     def get_cadena(self):
         return self.__cadena
+
 
     def get_transacciones(self):
         return self.__bloque_sin_minar.get_transacciones()
@@ -152,25 +161,6 @@ class Blockchain:
 
 
 
-
-if __name__=="__main__":
-    blockchain=Blockchain()
-    for i in range(3):
-        cadena="{}".format(i)
-        hash=blockchain.add_new_transaction(cadena)
-
-
-    blockchain.mine()
-    bloque=blockchain.last_block()
-
-
-    controller=BlockchainController
-    print("hash ultima transaccion:" ,hash)
-
-    print(controller.consultaBlockchain())
-    print(controller.consultaTransaccion(hash))
-    print(controller.consultaBloque(bloque.get_hash()))
-    controller.eliminarDatos()
 
 
 

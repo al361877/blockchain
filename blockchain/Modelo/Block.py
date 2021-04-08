@@ -41,9 +41,12 @@ class Block:
         #le doy valor al hash, que hasta ahora no tenia valor
         transaccion.hash=hashT
 
-        self.transacciones[hashT]=(transaccion.fecha,transaccion.dato,transaccion.Nonce)
+        #es la tupla que voy a almacenar
+        trans=(transaccion.fecha,transaccion.dato,transaccion.Nonce)
 
-        return hashT
+        self.transacciones[hashT]=trans
+
+        return hashT,trans
 
     def set_hash(self,hash):
         self._id=hash
@@ -55,12 +58,14 @@ class Block:
         return self.prev_hash
 
     def get_indice(self):
+
         return self.indice
 
 
     #si el bloque ya esta completo devolvera true, si no devolvera false
     def completo(self):
         return len(self.transacciones)>=self.MAX_TRANS
+
     def get_transacciones(self):
         return self.transacciones
     def toString(self):
