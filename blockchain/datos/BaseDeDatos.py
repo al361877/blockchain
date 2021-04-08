@@ -52,3 +52,14 @@ def eliminarDatos():
     print(x.deleted_count,"documents deleted")
     y=col2.delete_many({})
     print(y.deleted_count,"documents deleted")
+
+
+def consultaUltimoBloque():
+    bloque=col.find().sort("indice",-1).limit(1)
+
+    for x in bloque:
+
+        return x
+
+def consultaNombre():
+    return db.list_collection_names()
