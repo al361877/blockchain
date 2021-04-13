@@ -14,7 +14,6 @@ class Block:
     def __init__(self):
         #atributo donde luego almacenaré el hash
         self._id=None #he cambiado la palabra hash, por _id, para poderlo almacenar en mongodb con el hash como id, en vez de que me cree el uno propio
-
         self.indice=0
         self.transacciones={}
         self.fecha="fecha"
@@ -30,23 +29,24 @@ class Block:
         resultado=sha256(block_string.encode()).hexdigest()
         return resultado
 
-    def add_transaccion(self,transaccion,fecha):
-        transaccion=Transaccion(transaccion,fecha)
+    #lo mina este bloque, pero luego puede que se guarde en otro, porque se haya cerrado antes el programa
+    def add_transaccion(self,dato,fecha):
+        transaccion=Transaccion(dato,fecha)
         hashT=transaccion.compute_hash()
-
         while(not hashT.startswith(self.trabajo)):
             transaccion.Nonce+=1
             hashT=transaccion.compute_hash()
-
         #le doy valor al hash, que hasta ahora no tenia valor
         transaccion.hash=hashT
-
         #es la tupla que voy a almacenar
         trans=(transaccion.fecha,transaccion.dato,transaccion.Nonce)
-
         self.transacciones[hashT]=trans
 
-        return hashT,trans
+        return transaccion
+
+    def add_transaccion_minada(self,transaccion):
+        print("transaccion sin minar: ",transaccion)
+        self.transacciones[transaccion["_id"]]=(transaccion["fecha"],transaccion["dato"],transaccion["nonce"])
 
     def set_hash(self,hash):
         self._id=hash

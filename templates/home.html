@@ -166,12 +166,13 @@
                     <p class="body">Indice del bloque es: {{bloque["indice"]}}</p>
                     <p class="body">Su hash es: {{bloque["_id"]}}</p>
                     <p class="body">Fecha: {{bloque["fecha"]}}</p>
+                    <p class="body">Bloque anterior: {{bloque["prev_hash"]}}</p>
                     <p class="body">Transacciones: </p>
                 {%for transaccion in bloque["transacciones"]%}
 
                     <p class="body">-> Hash de la transaccion {{transaccion}} </p>
-                    <p class="body">-> Fecha de la transaccion {{bloque["transacciones"][transaccion][0]}} </p>
-                    <p class="body">-> Dato de la transaccion {{bloque["transacciones"][transaccion][1]}} </p>
+                    <p class="body">-> -> Fecha de la transaccion {{bloque["transacciones"][transaccion][0]}} </p>
+                    <p class="body">-> -> Dato de la transaccion {{bloque["transacciones"][transaccion][1]}} </p>
                 {%endfor%}
                 {%endif%}
             </div>

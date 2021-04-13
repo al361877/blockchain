@@ -20,6 +20,7 @@ class Blockchain:
         self.__cadena = []
         self.__bloque_sin_minar=Block()
         self.genesis=0
+
     def crear_genesis_block(self):
         """
         A function to generate genesis block and appends it to
@@ -39,6 +40,7 @@ class Blockchain:
         self.__cadena.append(genesis_block)
 
         self.controller.add_genesis(genesis_block)
+
         self.genesis=genesis_block
 
     def set_genesis(self,genesis):
@@ -82,6 +84,7 @@ class Blockchain:
     def cargarBlock(self,block):
 
         self.__cadena.append(block)
+        print("cargo el ultimo bloque",block)
 
     def is_valid_proof(self, block, block_hash):
         """
@@ -120,6 +123,13 @@ class Blockchain:
             trans=bloqueNuevo.add_transaccion(transaction,time.ctime(time.time()))
 
         return trans
+    def add_transaccion_minada(self,transaccion):
+        if(not self.__bloque_sin_minar.completo()):
+           self.__bloque_sin_minar.add_transaccion_minada(transaccion)
+        else:
+            self.mine()
+            bloqueNuevo=self.__bloque_sin_minar=Block()
+            bloqueNuevo.add_transaccion_minada(transaccion)
 
     def mine(self):
 
@@ -159,8 +169,17 @@ class Blockchain:
         return self.__bloque_sin_minar.get_transacciones()
 
 
+    def prueba_de_minado(self,bloque):
+    #el bloque me llega en formato json, por lo que para hacer la prueba de minado, primero creare el bloque con los datos del mismo y a ver si
+    #cumple la prueba de trabajo
 
-
+        block=Block()
+        block.set_hash(bloque["_id"])
+        block.indice=bloque["indice"]
+        block.fecha=bloque["fecha"]
+        block.Nonce=bloque["nonce"]
+        block.prev_hash=bloque["prev_hash"]
+        block.transacciones=bloque["transacciones"]
 
 
 

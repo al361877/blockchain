@@ -8,6 +8,7 @@ from blockchain.Modelo.Bolckchain import Blockchain
 import json
 from blockchain.Modelo.Block import Block
 from blockchain.datos import BaseDeDatos
+from blockchain.red.clientePrueba import Cliente
 
 app =  Flask(__name__)
 CONNECTED_NODE_ADDRESS = "http://127.0.0.1:8000"
@@ -28,14 +29,13 @@ def home():
 #este metodo primero mira si hay una blockchain ya creada, si lo está "la carga", si no la crea
 def compruebaBlockchain():
 
-
-    bloqueGenesis=BaseDeDatos.col.find_one()
+    bloqueGenesis=BaseDeDatos.encuentraUnBloque()
     blockchain.set_genesis(bloqueGenesis)
     if bloqueGenesis:
         #si existe la base de datos solo tengo que cargar el 'ultimo bloque
         #bloque=consultaUltimoBloque()
         bloque=consultaUltimoBloque()
-
+        #creo el nuevo bloque, que será una copia del último añadido en la bbdd
         block = Block()
         block.set_hash(bloque["_id"])
         block.indice = bloque["indice"]
@@ -46,6 +46,12 @@ def compruebaBlockchain():
         block.MAX_TRANS = bloque["MAX_TRANS"]
         block.trabajo = bloque["trabajo"]
         blockchain.cargarBlock(block)
+
+        #miro las últimas transacciones no minadas y se las añado al bloque sin minar de mi blockchain
+        transacciones=consultaTransacciones()
+
+        for transaccion in transacciones:
+            blockchain.add_transaccion_minada(transaccion)
 
     else:
         blockchain.crear_genesis_block()
@@ -69,8 +75,9 @@ def new_transaction():
     hashT=None
     transaccion=blockchain.add_new_transaction(tx_data)
     if transaccion:
-        hashT=transaccion[0]
-
+        hashT=transaccion.hash
+        almacenarTransaccion(transaccion)
+        print(hashT)
     return render_template("home.html",consultaT=True,token=hashT)
 
 @app.route('/consulta', methods=['POST'])
@@ -95,6 +102,8 @@ def get_chain():
 def mine_unconfirmed_transactions():
     compruebaBlockchain()
     bloque = blockchain.mine()
+    cliente=Cliente()
+    cliente.enviar(json.dumps(bloque.__dict__, sort_keys=False))
     if bloque==-1:
         return render_template("home.html",minado=-1,indice=False)
 
@@ -130,12 +139,13 @@ def register_me():
 #     blockchain=blockchain1[-1]
 #     return json.dumps(blockchain.get_transacciones())
 
-def mi_consenso():
+def mi_consenso(bloque):
     """"
     Mi consenso se realizará de la siguiente manera. Primero el bloque tienen que encontrar un hash adecuado con la prueba de trabajo
     cuando lo haya logrado, compartirá el bloque, para que el resto verifiquen que con ese nonce y esa fecha se cumple la prueba de trabajo
     entonces todos añadirán el bloque a su cadena de bloques.
     """
+    blockchain.prueba_de_minado(bloque)
 
 
 def guardar_bloque(bloque):
@@ -278,3 +288,12 @@ def consultaNombre():
 
 def consultaUltimoBloque():
     return BaseDeDatos.consultaUltimoBloque()
+def almacenarTransaccion(transaccion):
+    BaseDeDatos.almacenar_transaccion(transaccion)
+
+#mira las ultimas transacciones que no han sido minadas
+def consultaTransacciones():
+    transacciones=[]
+    for transaccion in BaseDeDatos.consultaTransacciones():
+        transacciones.append(transaccion)
+    return transacciones

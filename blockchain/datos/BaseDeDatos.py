@@ -9,21 +9,21 @@ from pymongo import MongoClient
 myclient = pymongo.MongoClient('mongodb://localhost:27017/')
 
 db=myclient['blockchain']
-col=db['bloques']
-col2=db['transacciones']
+bloquesdb=db['bloques']
+transaccionesdb=db['transacciones']
+nodosdb=db['nodos']
 
 def almacenar_genesis(genesis):
     dato = genesis.__dict__
-    col.insert(dato)
+    bloquesdb.insert(dato)
 
 def almacenarBloque(bloque):
+    print("hash del bloque",bloque.get_hash())
     dato=bloque.__dict__
-    col.insert(dato)
+    bloquesdb.insert(dato)
     transacciones = bloque.get_transacciones()
     for transaccion in transacciones:
-        col2.insert(
-            {"_id": transaccion, "fecha": transacciones[transaccion][0], "dato": transacciones[transaccion][1],
-             "nonce": transacciones[transaccion][2]})
+        update_transaccion(transaccion,bloque.get_hash())
 
 def almacenarBlockchain(lista):
     for elemento in lista:
@@ -31,35 +31,70 @@ def almacenarBlockchain(lista):
 
 
 def consultaDatos():
-    for x in col.find():
+    for x in bloquesdb.find():
         yield x
 
 
 def consultaUnaTransaccion(hash):
     myquery = {"_id": hash}
-    mydoc = col2.find(myquery)
+    mydoc = transaccionesdb.find(myquery)
     for x in mydoc:
         yield x
 
 def consultaUnBloque(hash):
     myquery={"_id":hash}
-    mydoc=col.find(myquery)
+    mydoc=bloquesdb.find(myquery)
     for x in mydoc:
         yield x
 
 def eliminarDatos():
-    x=col.delete_many({})
+    x=bloquesdb.delete_many({})
     print(x.deleted_count,"documents deleted")
-    y=col2.delete_many({})
+    y=transaccionesdb.delete_many({})
     print(y.deleted_count,"documents deleted")
 
+#devuelve el primer bloque que encuentra, sirve para saber si tengo datos en la bbdd y asi cargar el ultimo bloque o no
+def encuentraUnBloque():
+    return bloquesdb.find_one()
 
 def consultaUltimoBloque():
-    bloque=col.find().sort("indice",-1).limit(1)
-
+    bloque=bloquesdb.find().sort("indice",-1).limit(1)
     for x in bloque:
 
         return x
 
 def consultaNombre():
     return db.list_collection_names()
+
+#se almacenara la transaccion direcctamente, sin haber minado el bloque
+def almacenar_transaccion(transaccion):
+    transaccionesdb.insert({"_id": transaccion.hash, "fecha": transaccion.fecha, "dato": transaccion.dato,
+             "nonce": transaccion.Nonce,"bloque":"bloque no minado"})
+
+
+#se pone la direccion del bloque ya minado
+def update_transaccion(hashT,hashB):
+    myquery={"_id":hashT}
+    update={"$set":{"bloque":hashB}}
+    transaccionesdb.update_one(myquery,update)
+
+def consultaTransacciones():
+    myquery={"bloque":"bloque no minado"}
+    for x in transaccionesdb.find(myquery):
+        yield x
+
+def addNodo(ip):
+
+    nodosdb.insert({"ip":ip})
+
+def consultaNodo(ip):
+    myquery={"ip":ip}
+    for x in nodosdb.find(myquery):
+        return x
+def cargarNodos():
+    nodos=[]
+    for nodo in nodosdb.find({}):
+        nodos.append(nodo["ip"])
+    return nodos
+def eliminarNodos():
+    nodosdb.delete_many({})
