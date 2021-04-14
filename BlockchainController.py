@@ -108,7 +108,7 @@ def mine_unconfirmed_transactions():
         return render_template("home.html",minado=-1,indice=False)
 
     result=bloque.get_indice()
-    add_block_db(bloque)
+
     return render_template("home.html",minado=1,indice=result)
 
 
@@ -145,7 +145,7 @@ def mi_consenso(bloque):
     cuando lo haya logrado, compartirá el bloque, para que el resto verifiquen que con ese nonce y esa fecha se cumple la prueba de trabajo
     entonces todos añadirán el bloque a su cadena de bloques.
     """
-    blockchain.prueba_de_minado(bloque)
+    return blockchain.prueba_de_minado(bloque)
 
 
 def guardar_bloque(bloque):

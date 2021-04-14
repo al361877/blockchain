@@ -21,9 +21,13 @@ class Cliente():
                 # En Python 3 recv() retorna los datos leídos
                 # como un vector de bytes. Convertir a una cadena
                 # en caso de ser necesario.
-                print("La lista de IPs es:",end="")
-                lista=input_data.decode("utf-8").split("#")
-                print(lista)
+                input_data=input_data.decode("utf-8")
+                if input_data!="ok":
+                    if input_data=="not ok":
+                        print("algun nodo no me acepta")
+                    print("La lista de IPs es:",end="")
+                    lista=input_data.split("#")
+                    print(lista)
 
 if __name__ == "__main__":
     cliente=Cliente()

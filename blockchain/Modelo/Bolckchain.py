@@ -1,6 +1,4 @@
-
-
-
+import json
 import time
 
 import BlockchainController
@@ -104,6 +102,7 @@ class Blockchain:
         computed_hash = block.compute_hash()
 
         while not computed_hash.startswith(self.trabajo):
+
             block.Nonce+=1
             computed_hash = block.compute_hash()
 
@@ -174,12 +173,26 @@ class Blockchain:
     #cumple la prueba de trabajo
 
         block=Block()
-        block.set_hash(bloque["_id"])
-        block.indice=bloque["indice"]
+        bloque=json.loads(bloque)
+
+
+
+        block.indice=int(bloque["indice"])
         block.fecha=bloque["fecha"]
-        block.Nonce=bloque["nonce"]
+        block.Nonce=int(bloque["Nonce"])
         block.prev_hash=bloque["prev_hash"]
         block.transacciones=bloque["transacciones"]
+        #una vez tengo el bloque hago la prueba de trabajo
+        nuevoHash=block.compute_hash()
+        block.set_hash(nuevoHash)
+        # print("el hash del bloque es:",bloque["_id"],"mientras que el nuevo hash es:",nuevoHash)
+
+        #para que sea valido, el nonce no se tiene que haber modificado y el hash tampoco
+        if block.Nonce==int(bloque["Nonce"]) and bloque["_id"]==nuevoHash:
+            return block
+        else:
+            print("ha habido un fallo")
+            return False
 
 
 

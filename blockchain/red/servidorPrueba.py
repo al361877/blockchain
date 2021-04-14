@@ -1,6 +1,7 @@
 from socket import socket, error
 from threading import Thread
 
+import BlockchainController
 from blockchain.datos import BaseDeDatos
 
 
@@ -28,10 +29,22 @@ class Client(Thread):
                 print("[%s] Error de lectura." % self.name)
                 break
             else:
-                # Reenviar la información recibida.
+
                 if input_data:
-                    print("he recivido",input_data.decode("utf-8"))
-                    self.conn.send(bytes(self.lista, "utf-8"))
+                    bloque=input_data.decode("utf-8")
+
+                    if bloque!="hello":
+                        bloque=BlockchainController.mi_consenso(bloque)
+                        if bloque:
+                            BlockchainController.add_block_db(bloque)
+                            #le digo al cliente que esta ok
+                            self.conn.send(bytes("ok", "utf-8"))
+                        else:
+                            #le hago saber que no esta bien
+                            self.conn.send(bytes("not ok", "utf-8"))
+                    else:
+                        # si es un hello, envio mi lista de ips
+                        self.conn.send(bytes(self.lista, "utf-8"))
 
 
 class ServidorPrueba():

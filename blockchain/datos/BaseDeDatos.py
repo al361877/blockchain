@@ -18,7 +18,6 @@ def almacenar_genesis(genesis):
     bloquesdb.insert(dato)
 
 def almacenarBloque(bloque):
-    print("hash del bloque",bloque.get_hash())
     dato=bloque.__dict__
     bloquesdb.insert(dato)
     transacciones = bloque.get_transacciones()
@@ -69,7 +68,7 @@ def consultaNombre():
 #se almacenara la transaccion direcctamente, sin haber minado el bloque
 def almacenar_transaccion(transaccion):
     transaccionesdb.insert({"_id": transaccion.hash, "fecha": transaccion.fecha, "dato": transaccion.dato,
-             "nonce": transaccion.Nonce,"bloque":"bloque no minado"})
+             "Nonce": transaccion.Nonce,"bloque":"bloque no minado"})
 
 
 #se pone la direccion del bloque ya minado

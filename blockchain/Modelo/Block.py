@@ -46,7 +46,7 @@ class Block:
 
     def add_transaccion_minada(self,transaccion):
         print("transaccion sin minar: ",transaccion)
-        self.transacciones[transaccion["_id"]]=(transaccion["fecha"],transaccion["dato"],transaccion["nonce"])
+        self.transacciones[transaccion["_id"]]=(transaccion["fecha"],transaccion["dato"],transaccion["Nonce"])
 
     def set_hash(self,hash):
         self._id=hash
