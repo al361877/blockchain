@@ -28,6 +28,8 @@ class Cliente():
                     print("La lista de IPs es:",end="")
                     lista=input_data.split("#")
                     print(lista)
+                else:
+                    print("Ha sido minado con exito")
 
 if __name__ == "__main__":
     cliente=Cliente()

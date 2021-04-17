@@ -47,9 +47,10 @@ class Client(Thread):
                         self.conn.send(bytes(self.lista, "utf-8"))
 
 
-class ServidorPrueba():
+class ServidorPrueba(Thread):
 
     def __init__(self):
+        Thread.__init__(self)
         self.clientes=BaseDeDatos.cargarNodos()
 
     def add_cliente(self,ip):
@@ -57,7 +58,7 @@ class ServidorPrueba():
         BaseDeDatos.addNodo(ip)
 
 
-    def main(self):
+    def run(self):
         s = socket()
 
         # Escuchar peticiones en el puerto 6030.

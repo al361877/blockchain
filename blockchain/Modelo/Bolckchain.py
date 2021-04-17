@@ -30,7 +30,7 @@ class Blockchain:
         genesis_block.transacciones="genesis"
         genesis_block.fecha=time.ctime(time.time())
 
-        print("Creo el genesis")
+
         hash=self.prueba_de_trabajo(genesis_block)
 
         genesis_block.set_hash(hash)
@@ -82,7 +82,7 @@ class Blockchain:
     def cargarBlock(self,block):
 
         self.__cadena.append(block)
-        print("cargo el ultimo bloque",block)
+
 
     def is_valid_proof(self, block, block_hash):
         """
