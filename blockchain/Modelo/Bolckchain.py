@@ -13,6 +13,7 @@ class Blockchain:
     trabajo='abc'
 
     controller = BlockchainController
+
     def __init__(self):
 
         self.__cadena = []
@@ -43,6 +44,8 @@ class Blockchain:
 
     def set_genesis(self,genesis):
         self.genesis=genesis
+
+
     def last_block(self):
         return self.__cadena[-1]
 
@@ -72,12 +75,13 @@ class Blockchain:
         block.set_hash(proof)
 
 
-        #lo añado en la cadena
-        self.__cadena.append(block)
-
-
 
         return True
+
+    def add_definitivo(self,block):
+        # lo añado en la cadena
+        self.__cadena.append(block)
+
 
     def cargarBlock(self,block):
 
@@ -174,8 +178,6 @@ class Blockchain:
 
         block=Block()
         bloque=json.loads(bloque)
-
-
 
         block.indice=int(bloque["indice"])
         block.fecha=bloque["fecha"]

@@ -30,8 +30,10 @@ def almacenarBlockchain(lista):
 
 
 def consultaDatos():
+    bloques=[]
     for x in bloquesdb.find():
-        yield x
+        bloques.append(x)
+    return bloques
 
 
 def consultaUnaTransaccion(hash):
@@ -61,6 +63,18 @@ def consultaUltimoBloque():
     for x in bloque:
 
         return x
+
+#devuelve la blockchain desde ese indice
+def blockchainIndice(indice):
+    nuevaBlockchain=[]
+    ultimoBloque = consultaUltimoBloque()
+    for i in range(indice,ultimoBloque["indice"]):
+        myquery={"indice":i}
+        for x in myquery:
+            nuevaBlockchain.append(x)
+
+    return nuevaBlockchain
+
 
 def consultaNombre():
     return db.list_collection_names()
@@ -97,3 +111,6 @@ def cargarNodos():
     return nodos
 def eliminarNodos():
     nodosdb.delete_many({})
+
+if __name__ == "__main__":
+    eliminarNodos()

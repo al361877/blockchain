@@ -1,6 +1,6 @@
 from socket import socket, error
 from threading import Thread
-
+import json
 import BlockchainController
 from blockchain.datos import BaseDeDatos
 
@@ -19,6 +19,7 @@ class Client(Thread):
         ip=addr[0]
         puerto=addr[1]
         print("{}:{} se ha conectado.".format(ip,puerto))
+
     def run(self):
         while True:
             try:
@@ -31,28 +32,83 @@ class Client(Thread):
             else:
 
                 if input_data:
-                    bloque=input_data.decode("utf-8")
+                    msg=input_data.decode("utf-8")
+                    #lista es una tuppla de 2 elementos, el primero es un string (blockchainID) para indicar que el segundo elemento de la lista es el id del ultimo bloque
+                    lista = msg.slpit("#")
 
-                    if bloque!="hello":
-                        bloque=BlockchainController.mi_consenso(bloque)
+                    if lista[0] == "blockchainIndice":
+                        indice=lista[1]
+                        #cojo la blockchain desde ese indice
+                        nuevaBlockchain=BaseDeDatos.blockchainIndice(indice)
+                        blockchainString=""
+                        for bloque in nuevaBlockchain:
+                            blockchainString=blockchainString+bloque
+
+                        self.conn.send(bytes(blockchainString, "utf-8"))
+
+                    elif msg=="hello padre":
+                        # si es un hello, envio mi lista de ips (solo si es el nodo padre, si no lo es, no hace nada)
+                        direccionesIP = ""
+
+                        nodos=BaseDeDatos.cargarNodos()
+                        # construyo una cadena que tendra todas las ips de mis nodos, para poderselo enviar al nuevo
+                        for ip in nodos:
+                            if ip != nodos[-1]:
+                                direccionesIP = direccionesIP + str(ip) + "#"
+                            else:
+                                direccionesIP = direccionesIP + str(ip)
+
+                        self.conn.send(bytes(direccionesIP, "utf-8"))
+
+                    elif msg=="solicitud":
+                        bloques=""
+                        bloquesBD=BaseDeDatos.consultaDatos()
+
+                        for bloque in bloquesBD:
+                            if bloque!=bloquesBD[-1]:
+                                bloques=bloques+str(bloque)+"#"
+                            else:
+                                bloques = bloques + str(bloque)
+
+                        #le envio los bloques en formato de cadena
+                        self.conn.send(bytes(bloques, "utf-8"))
+                    elif msg=="hello":
+
+                        self.conn.send(bytes("ok", "utf-8"))
+
+                    elif msg=="ultimoBloque":
+                        bloque=BlockchainController.consultaUltimoBloque()
+                        bloqueString=json.dumps(bloque.__dict__, sort_keys=False)
+                        self.conn.send(bytes(bloqueString, "utf-8"))
+
+
+                    else:
+
+
+
+
+                        #envio el bloque al consenso, si se confirma, le doy el ok y lo guardo en mi blockchain, sino, le digo que es erroneo
+                        bloque = BlockchainController.mi_consenso(msg)
                         if bloque:
-                            BlockchainController.add_block_db(bloque)
-                            #le digo al cliente que esta ok
+                            BlockchainController.guardar_bloque(bloque)
+                            # le digo al cliente que esta ok
                             self.conn.send(bytes("ok", "utf-8"))
                         else:
-                            #le hago saber que no esta bien
+                            # le hago saber que no esta bien
                             self.conn.send(bytes("not ok", "utf-8"))
-                    else:
-                        # si es un hello, envio mi lista de ips
-                        self.conn.send(bytes(self.lista, "utf-8"))
+
 
 
 class ServidorPrueba(Thread):
 
     def __init__(self):
         Thread.__init__(self)
-        self.clientes=BaseDeDatos.cargarNodos()
+        try:
+            self.clientes=BaseDeDatos.cargarNodos()
+        except:
+            self.clientes = []
 
+    #añado el nodo a mi lista de nodos
     def add_cliente(self,ip):
         self.clientes.append(ip)
         BaseDeDatos.addNodo(ip)
@@ -61,23 +117,19 @@ class ServidorPrueba(Thread):
     def run(self):
         s = socket()
 
-        # Escuchar peticiones en el puerto 6030.
-        s.bind(("localhost", 6030))
+        # Esta ip luego será una variable de entorno
+        s.bind(("10.129.84.116", 6030))
         s.listen(0)
 
         while True:
             conn, addr = s.accept()
             c = Client(conn, addr)
-            direccionesIP=""
-            for ip in self.clientes:
-                if ip != self.clientes[-1]:
-                    direccionesIP=direccionesIP+str(ip)+"#"
-                else:
-                    direccionesIP=direccionesIP+str(ip)
-            c.lista=direccionesIP
-            c.start()
-            ip=addr[0]
 
+
+            c.start()
+
+            #si la ip del cliente no lo tenia en mi lista de nodos, lo agrego
+            ip=addr[0]
             if ip not in self.clientes:
                 self.add_cliente(addr[0])
                 print("Se ha añadido un nuevo nodo")

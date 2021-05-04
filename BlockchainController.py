@@ -26,9 +26,16 @@ def home():
 
     return render_template("home.html")
 
+def nodoNuevo():
+    '''
+    Se mira si hay algo en la base de datos, si no hay nada es que es un nodo nuevo, y hay que pedir al resto de
+    nodos que le pasen su blockchain
+
+    '''
+
 #este metodo primero mira si hay una blockchain ya creada, si lo está "la carga", si no la crea
 def compruebaBlockchain():
-
+    #este metodo devuelve el primer bloque, es decir, el genesis
     bloqueGenesis=BaseDeDatos.encuentraUnBloque()
     blockchain.set_genesis(bloqueGenesis)
     if bloqueGenesis:
@@ -50,10 +57,15 @@ def compruebaBlockchain():
         #miro las últimas transacciones no minadas y se las añado al bloque sin minar de mi blockchain
         transacciones=consultaTransacciones()
 
+        #despues de haber cargado mi base de datos, actualizo
+        actuaizar()
+
         for transaccion in transacciones:
             blockchain.add_transaccion_minada(transaccion)
 
     else:
+        #si no existe un bloque genesis, es que soy nuevo y me registro
+        register_me()
         blockchain.crear_genesis_block()
 
 @app.route('/borrar',methods=['GET'])
@@ -102,8 +114,22 @@ def get_chain():
 def mine_unconfirmed_transactions():
     compruebaBlockchain()
     bloque = blockchain.mine()
-    cliente=Cliente()
-    cliente.enviar(json.dumps(bloque.__dict__, sort_keys=False))
+    nodos=BaseDeDatos.cargarNodos()
+    #guardo todas las respuestas
+    respuestas=[]
+    #envio el bloque a todos los nodos de la blockchain
+    for ipNodo in nodos:
+        cliente=Cliente(ipNodo)
+        respuesta=cliente.enviar(json.dumps(bloque.__dict__, sort_keys=False))
+        respuestas.append(respuesta)
+    #cuento las respuestas ok, si estas son igual al numero de nodos
+    contadorOk=0
+    for respuesta in respuestas:
+        if respuesta=="ok":
+            contadorOk+=1
+    #lo guardo en mi blockchain y le digo al resto de nodos que lo guarden
+    if contadorOk== len(nodos):
+        guardar_bloque(bloque)
     if bloque==-1:
         return render_template("home.html",minado=-1,indice=False)
 
@@ -112,32 +138,86 @@ def mine_unconfirmed_transactions():
     return render_template("home.html",minado=1,indice=result)
 
 
-# punto de acceso para añadir nuevos compañeros a la red.
-@app.route('/add_nodes', methods=['POST'])
-def register_new_peers():
-    #nodes = request.get_json()
-    nodes=request.form["direccion"]
-    print(nodes)
-    if not nodes:
-        return "Invalid data", 400
-    for node in nodes:
-        print(node)
-        peers.add(node)
 
-    return "Success", 201
 
-@app.route('/add_me',methods=['POST'])
+
+#este metodo se usa cuando llega un nuevo nodo a la blockchain
 def register_me():
-    direccion=request.form["direccion"]
-    #broadcast a toda la red con mi dirección ip, para que me añadan y que me devuelvan la lista de peers
+    #enviar un hello al nodo padre, esta ip luego será una variable de entorno
+    cliente=Cliente("10.129.84.116")
+    listaIP=cliente.enviar("hello padre")
+    addNodo("10.129.84.116")
 
 
-# punto de acceso para obtener los bloques
-# no confirmados
-# @app.route('/pending_tx')
-# def get_pending_tx():
-#     blockchain=blockchain1[-1]
-#     return json.dumps(blockchain.get_transacciones())
+    for ip in listaIP:
+        addNodo(ip)
+        #una vez tengo la lista de ips, voy a enviar un hello a todos los dem'as nodos para que me agreguen a su lista
+        nuevoCliente=Cliente(ip)
+        nuevoCliente.enviar("hello")
+
+    solicitar_blockchain()
+
+
+
+def actuaizar():
+    '''
+    este metodo es similar al anterior de registrarme, pero con la diferencia de que se ejecuta cada vez que arranco el programa
+
+    se diferencia sobretodo en que tiene que comparar lo que ya tiene con los nuevos datos para que no guarde cosas repetidas.
+
+    '''
+
+    #solicito de nuevo la lista de ips
+    # solo le solicito las cosas al nodos padre, pero para que funcionara realmente como una blockchain, deberia de solicitarlo a todos y luego comparar
+    # y asi asegurarme de que esta todo bien
+    cliente=Cliente("10.129.84.116")
+    listaIPNueva=cliente.enviar("hello padre")
+
+    #cojo mi lista de ips para comparar si se ha unido alguien nuevo, y si lo ha hecho, agregarlo
+    miListaIP=cargarNodos()
+    for nuevaIp in listaIPNueva:
+        if nuevaIp not in miListaIP:
+            addNodo(nuevaIp)
+
+    #solicito último bloque y lo comparto con el mio, si no es el mismo, solicito la blockchain desde el indice de mi bloque.
+    miUltimoBloque=consultaUltimoBloque()
+
+    #le solicito el ultimo bloque al padre
+    ultimoBloqueBlockchain=cliente.enviar("ultimoBloque")
+    ultimoBloqueBlockchain=json.loads(ultimoBloqueBlockchain)
+
+    #comparo el hash. Si no coinciden, solicito la blockchain desde el indice de mi último bloque
+    if miUltimoBloque.get_hash()!=ultimoBloqueBlockchain.get_hash():
+        indice=miUltimoBloque.indice
+        nuevoBlockchain=cliente.enviar(("BlockchainIndice",indice))
+
+        for bloqueString in nuevoBlockchain:
+            bloque=json.loads(bloqueString)
+            guardar_bloque(bloque)
+
+        #despues de actulizar, cargo mi ultimo bloque a la blockchain
+        ultimoBloque=consultaUltimoBloque()
+        block = Block()
+        block.set_hash(ultimoBloque["_id"])
+        block.indice = ultimoBloque["indice"]
+        block.transacciones = ultimoBloque["transacciones"]
+        block.fecha = ultimoBloque["fecha"]
+        block.prev_hash = ultimoBloque["prev_hash"]
+        block.Nonce = ultimoBloque["Nonce"]
+        block.MAX_TRANS = ultimoBloque["MAX_TRANS"]
+        block.trabajo = ultimoBloque["trabajo"]
+        blockchain.cargarBlock(block)
+
+
+#deberia soliticitarla a todos los nodos, para luego comparar y que tengan coherencia, pero para simplificar, solo voy a pedirselo al padre.
+def solicitar_blockchain():
+    cliente=Cliente("10.129.84.116")
+    nuevaBlockchain=cliente.enviar("solicitud")
+
+    for bloqueString in nuevaBlockchain:
+        bloque = json.loads(bloqueString)
+        guardar_bloque(bloque)
+
 
 def mi_consenso(bloque):
     """"
@@ -151,93 +231,15 @@ def mi_consenso(bloque):
 def guardar_bloque(bloque):
     """
     Despues de que el bloque haya sido aceptado por el consenso, todos lo guardan en su blockchain
+
+    Este metodo es llamado desde el servidor que ha confirmado el bloque
     """
-
-
-def consensus():
-    """
-    Nuestro simple algoritmo de consenso. Si una cadena válida más larga es
-    encontrada, la nuestra es reemplazada por ella.
-    """
-    global blockchain
-
-    longest_chain = None
-    current_len = len(blockchain)
-
-    for node in peers:
-        response = requests.get('http://{}/chain'.format(node))
-        length = response.json()['length']
-        chain = response.json()['chain']
-        if length > current_len and blockchain.check_chain_validity(chain):
-            current_len = length
-            longest_chain = chain
-
-    if longest_chain:
-        blockchain = longest_chain
-        return True
-
-    return False
+    #lo agrego a la blockchain local y a la de la base de datos
+    blockchain.add_definitivo(bloque)
+    add_block_db(bloque)
 
 
 
-# punto de acceso para añadir un bloque minado por alguien más a la cadena del nodo.
-@app.route('/add_block', methods=['POST'])
-def validate_and_add_block():
-
-    block_data = request.get_json()
-    block = Block(block_data["index"], block_data["transactions"],
-                  block_data["timestamp", block_data["previous_hash"]])
-
-    proof = block_data['hash']
-    added = blockchain.add_block(block, proof)
-
-    if not added:
-        return "The block was discarded by the node", 400
-
-    return "Block added to the chain", 201
-
-def announce_new_block(block):
-    for peer in peers:
-        url = "http://{}/add_block".format(peer)
-        requests.post(url, data=json.dumps(block.__dict__, sort_keys=True))
-
-def fetch_posts():
-    get_chain_address = "{}/chain".format(CONNECTED_NODE_ADDRESS)
-    response = requests.get(get_chain_address)
-    if response.status_code == 200:
-        content = []
-        chain = json.loads(response.content)
-        for block in chain["chain"]:
-            for tx in block["transactions"]:
-                tx["index"] = block["index"]
-                tx["hash"] = block["previous_hash"]
-                content.append(tx)
-
-        global posts
-        posts = sorted(content, key=lambda k: k['timestamp'],reverse=True)
-
-@app.route('/submit', methods=['POST'])
-def submit_textarea():
-    """
-    Punto de acceso para crear una nueva transacción vía nuestra
-    aplicación.
-    """
-    post_content = request.form["content"]
-    author = request.form["author"]
-
-    post_object = {
-        'author': author,
-        'content': post_content,
-    }
-
-    # Submit a transaction
-    new_tx_address = "{}/new_transaction".format(CONNECTED_NODE_ADDRESS)
-
-    requests.post(new_tx_address,
-                  json=post_object,
-                  headers={'Content-type': 'application/json'})
-
-    return render_template('/')
 
 
 ##############     A PARTIR DE AQUI, VOY A TRATAR CON LA BASE DE DATOS        ##############
@@ -286,7 +288,7 @@ def resetearBlockchain():
 def consultaNombre():
     return BaseDeDatos.consultaNombre()
 
-def consultaUltimoBloque():
+def consultaUltimoBloque()-> Block:
     return BaseDeDatos.consultaUltimoBloque()
 def almacenarTransaccion(transaccion):
     BaseDeDatos.almacenar_transaccion(transaccion)
@@ -297,3 +299,8 @@ def consultaTransacciones():
     for transaccion in BaseDeDatos.consultaTransacciones():
         transacciones.append(transaccion)
     return transacciones
+def cargarNodos():
+    return BaseDeDatos.cargarNodos()
+
+def addNodo(ip):
+    BaseDeDatos.addNodo(ip)
