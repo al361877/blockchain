@@ -26,12 +26,7 @@ def home():
 
     return render_template("home.html")
 
-def nodoNuevo():
-    '''
-    Se mira si hay algo en la base de datos, si no hay nada es que es un nodo nuevo, y hay que pedir al resto de
-    nodos que le pasen su blockchain
 
-    '''
 
 #este metodo primero mira si hay una blockchain ya creada, si lo está "la carga", si no la crea
 def compruebaBlockchain():
@@ -45,20 +40,19 @@ def compruebaBlockchain():
         #creo el nuevo bloque, que será una copia del último añadido en la bbdd
         block=construirBloque(bloque)
         blockchain.cargarBlock(block)
-
         #miro las últimas transacciones no minadas y se las añado al bloque sin minar de mi blockchain
         transacciones=consultaTransacciones()
 
         #despues de haber cargado mi base de datos, actualizo
-        actuaizar()
+        # actuaizar()
 
         for transaccion in transacciones:
             blockchain.add_transaccion_minada(transaccion)
 
     else:
         #si no existe un bloque genesis, es que soy nuevo y me registro
-        register_me()
-
+        # register_me()
+            pass
 
 '''Construye un bloque objeto a partir de un boque diccionario, que es el que te da la base de datos'''
 def construirBloque(bloque):
@@ -78,8 +72,6 @@ def reset():
     resetearBlockchain()
 
     return render_template("home.html")
-
-
 
 
 @app.route('/add', methods=['POST'])

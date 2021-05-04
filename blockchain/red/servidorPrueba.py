@@ -42,12 +42,12 @@ class Client(Thread):
                         nuevaBlockchain=BaseDeDatos.blockchainIndice(indice)
                         blockchainString=""
                         for bloque in nuevaBlockchain:
-                            if bloque!=nuevaBlockchain[-1]:
-                                blockchainString=blockchainString+str(bloque)+"#"
+                            if bloque != nuevaBlockchain[-1]:
+                                bloqueString = json.dumps(bloque)
+                                blockchainString = blockchainString + str(bloqueString) + "#"
                             else:
-                                blockchainString = blockchainString + str(bloque)
-
-
+                                bloqueString = json.dumps(bloque)
+                                blockchainString = blockchainString + str(bloqueString)
                         self.conn.send(bytes(blockchainString, "utf-8"))
 
                     elif msg=="hello padre":
@@ -70,9 +70,12 @@ class Client(Thread):
 
                         for bloque in bloquesBD:
                             if bloque!=bloquesBD[-1]:
-                                bloques=bloques+str(bloque)+"#"
+                                bloqueString=json.dumps(bloque)
+                                bloques=bloques+str(bloqueString)+"#"
+
                             else:
-                                bloques = bloques + str(bloque)
+                                bloqueString=json.dumps(bloque)
+                                bloques = bloques + str(bloqueString)
 
                         #le envio los bloques en formato de cadena
                         self.conn.send(bytes(bloques, "utf-8"))
@@ -82,7 +85,7 @@ class Client(Thread):
 
                     elif msg=="ultimoBloque":
                         bloque=BlockchainController.consultaUltimoBloque()
-                        bloqueString=json.dumps(bloque)
+                        bloqueString=json.dumps(bloque.__dict__, sort_keys=False)
                         self.conn.send(bytes(bloqueString, "utf-8"))
 
 
@@ -119,20 +122,19 @@ class ServidorPrueba(Thread):
         s = socket()
 
         # Esta ip luego será una variable de entorno
-        myIP="10.129.84.148"
+        myIP="10.129.84.116"
         s.bind((myIP, 6030))
         s.listen(0)
 
         while True:
             conn, addr = s.accept()
             c = Client(conn, addr)
-
-
-            c.start()
-
-            #si la ip del cliente no lo tenia en mi lista de nodos, lo agrego
             ip=addr[0]
+
             if ip!=myIP:
+                c.start()
+
+                #si la ip del cliente no lo tenia en mi lista de nodos, lo agrego
                 if ip not in self.clientes:
                     self.add_cliente(addr[0])
                     print("Se ha añadido un nuevo nodo")
