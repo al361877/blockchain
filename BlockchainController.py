@@ -3,7 +3,7 @@ from pprint import pprint
 from flask import Flask, request, render_template
 
 import requests
-from blockchain.Modelo.Bolckchain import Blockchain
+from blockchain.Modelo.Blockchain import Blockchain
 
 import json
 from blockchain.Modelo.Block import Block
@@ -43,15 +43,7 @@ def compruebaBlockchain():
         #bloque=consultaUltimoBloque()
         bloque=consultaUltimoBloque()
         #creo el nuevo bloque, que será una copia del último añadido en la bbdd
-        block = Block()
-        block.set_hash(bloque["_id"])
-        block.indice = bloque["indice"]
-        block.transacciones = bloque["transacciones"]
-        block.fecha = bloque["fecha"]
-        block.prev_hash = bloque["prev_hash"]
-        block.Nonce = bloque["Nonce"]
-        block.MAX_TRANS = bloque["MAX_TRANS"]
-        block.trabajo = bloque["trabajo"]
+        block=construirBloque(bloque)
         blockchain.cargarBlock(block)
 
         #miro las últimas transacciones no minadas y se las añado al bloque sin minar de mi blockchain
@@ -66,8 +58,21 @@ def compruebaBlockchain():
     else:
         #si no existe un bloque genesis, es que soy nuevo y me registro
         register_me()
-        blockchain.crear_genesis_block()
 
+
+'''Construye un bloque objeto a partir de un boque diccionario, que es el que te da la base de datos'''
+def construirBloque(bloque):
+    block = Block()
+
+    block.set_hash(bloque["_id"])
+    block.indice = int(bloque["indice"])
+    block.transacciones = bloque["transacciones"]
+    block.fecha = bloque["fecha"]
+    block.prev_hash = bloque["prev_hash"]
+    block.Nonce = bloque["Nonce"]
+    block.MAX_TRANS = bloque["MAX_TRANS"]
+    block.trabajo = bloque["trabajo"]
+    return block
 @app.route('/borrar',methods=['GET'])
 def reset():
     resetearBlockchain()
@@ -181,15 +186,18 @@ def actuaizar():
 
     #solicito último bloque y lo comparto con el mio, si no es el mismo, solicito la blockchain desde el indice de mi bloque.
     miUltimoBloque=consultaUltimoBloque()
+    print("mi ultimo bloque",miUltimoBloque)
+    miUltimoBloque=construirBloque(miUltimoBloque)
 
     #le solicito el ultimo bloque al padre
     ultimoBloqueBlockchain=cliente.enviar("ultimoBloque")
-    ultimoBloqueBlockchain=json.loads(ultimoBloqueBlockchain)
-
+    print("su bloque",ultimoBloqueBlockchain[0])
+    ultimoBloqueBlockchain=construirBloque(json.loads(ultimoBloqueBlockchain[0]))
     #comparo el hash. Si no coinciden, solicito la blockchain desde el indice de mi último bloque
     if miUltimoBloque.get_hash()!=ultimoBloqueBlockchain.get_hash():
         indice=miUltimoBloque.indice
-        nuevoBlockchain=cliente.enviar(("BlockchainIndice",indice))
+        string="BlockchainIndice"+"#"+str(indice)
+        nuevoBlockchain=cliente.enviar(string)
 
         for bloqueString in nuevoBlockchain:
             bloque=json.loads(bloqueString)
@@ -197,15 +205,8 @@ def actuaizar():
 
         #despues de actulizar, cargo mi ultimo bloque a la blockchain
         ultimoBloque=consultaUltimoBloque()
-        block = Block()
-        block.set_hash(ultimoBloque["_id"])
-        block.indice = ultimoBloque["indice"]
-        block.transacciones = ultimoBloque["transacciones"]
-        block.fecha = ultimoBloque["fecha"]
-        block.prev_hash = ultimoBloque["prev_hash"]
-        block.Nonce = ultimoBloque["Nonce"]
-        block.MAX_TRANS = ultimoBloque["MAX_TRANS"]
-        block.trabajo = ultimoBloque["trabajo"]
+        block=construirBloque(ultimoBloque)
+
         blockchain.cargarBlock(block)
 
 
@@ -215,7 +216,7 @@ def solicitar_blockchain():
     nuevaBlockchain=cliente.enviar("solicitud")
 
     for bloqueString in nuevaBlockchain:
-        bloque = json.loads(bloqueString)
+        bloque = construirBloque(json.loads(bloqueString))
         guardar_bloque(bloque)
 
 

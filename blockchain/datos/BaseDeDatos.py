@@ -114,3 +114,4 @@ def eliminarNodos():
 
 if __name__ == "__main__":
     eliminarNodos()
+    eliminarDatos()

@@ -34,15 +34,19 @@ class Client(Thread):
                 if input_data:
                     msg=input_data.decode("utf-8")
                     #lista es una tuppla de 2 elementos, el primero es un string (blockchainID) para indicar que el segundo elemento de la lista es el id del ultimo bloque
-                    lista = msg.slpit("#")
+                    lista = msg.split("#")
 
-                    if lista[0] == "blockchainIndice":
+                    if lista[0] == "BlockchainIndice":
                         indice=lista[1]
                         #cojo la blockchain desde ese indice
                         nuevaBlockchain=BaseDeDatos.blockchainIndice(indice)
                         blockchainString=""
                         for bloque in nuevaBlockchain:
-                            blockchainString=blockchainString+bloque
+                            if bloque!=nuevaBlockchain[-1]:
+                                blockchainString=blockchainString+str(bloque)+"#"
+                            else:
+                                blockchainString = blockchainString + str(bloque)
+
 
                         self.conn.send(bytes(blockchainString, "utf-8"))
 
@@ -78,14 +82,11 @@ class Client(Thread):
 
                     elif msg=="ultimoBloque":
                         bloque=BlockchainController.consultaUltimoBloque()
-                        bloqueString=json.dumps(bloque.__dict__, sort_keys=False)
+                        bloqueString=json.dumps(bloque)
                         self.conn.send(bytes(bloqueString, "utf-8"))
 
 
                     else:
-
-
-
 
                         #envio el bloque al consenso, si se confirma, le doy el ok y lo guardo en mi blockchain, sino, le digo que es erroneo
                         bloque = BlockchainController.mi_consenso(msg)
@@ -118,7 +119,8 @@ class ServidorPrueba(Thread):
         s = socket()
 
         # Esta ip luego será una variable de entorno
-        s.bind(("10.129.84.116", 6030))
+        myIP="10.129.84.148"
+        s.bind((myIP, 6030))
         s.listen(0)
 
         while True:
@@ -130,9 +132,10 @@ class ServidorPrueba(Thread):
 
             #si la ip del cliente no lo tenia en mi lista de nodos, lo agrego
             ip=addr[0]
-            if ip not in self.clientes:
-                self.add_cliente(addr[0])
-                print("Se ha añadido un nuevo nodo")
+            if ip!=myIP:
+                if ip not in self.clientes:
+                    self.add_cliente(addr[0])
+                    print("Se ha añadido un nuevo nodo")
 
 
 
