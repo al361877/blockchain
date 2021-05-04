@@ -85,7 +85,7 @@ class Client(Thread):
 
                     elif msg=="ultimoBloque":
                         bloque=BlockchainController.consultaUltimoBloque()
-                        bloqueString=json.dumps(bloque.__dict__, sort_keys=False)
+                        bloqueString=json.dumps(bloque)
                         self.conn.send(bytes(bloqueString, "utf-8"))
 
 
