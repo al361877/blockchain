@@ -14,6 +14,7 @@ class Client(Thread):
         # Inicializar clase padre.
         Thread.__init__(self)
 
+
         self.conn = conn
         self.addr = addr
         ip=addr[0]

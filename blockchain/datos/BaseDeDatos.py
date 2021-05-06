@@ -82,6 +82,7 @@ def consultaUltimoBloque():
 #devuelve un bloque pasandole un indice como argumento, sirve para enviar bloque a bloque
 def bloqueIndice(indice):
 
+
     myquery = {"indice": int(indice)}
     mydoc = bloquesdb.find(myquery)
     for x in mydoc:

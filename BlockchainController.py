@@ -54,6 +54,7 @@ def compruebaBlockchain():
         register_me()
 
 
+
 '''Construye un bloque objeto a partir de un boque diccionario, que es el que te da la base de datos'''
 def construirBloque(bloque):
     block = Block()
