@@ -64,6 +64,7 @@ class Block:
 
     #si el bloque ya esta completo devolvera true, si no devolvera false
     def completo(self):
+
         return len(self.transacciones)>=self.MAX_TRANS
 
     def get_transacciones(self):

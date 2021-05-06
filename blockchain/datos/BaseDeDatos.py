@@ -5,7 +5,6 @@ import pymongo
 
 from pymongo import MongoClient
 
-import BlockchainController
 
 myclient = pymongo.MongoClient('mongodb://localhost:27017/')
 
@@ -115,9 +114,5 @@ def eliminarNodos():
     nodosdb.delete_many({})
 
 if __name__ == "__main__":
-    ultimoBloque=consultaUltimoBloque()
-    block=BlockchainController.construirBloque(ultimoBloque)
-    blockString=json.dumps(ultimoBloque)
-    print(ultimoBloque)
-    print(blockString)
+    eliminarNodos()
     eliminarDatos()

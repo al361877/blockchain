@@ -8,10 +8,14 @@ class Cliente():
         self.ipServer=ip
 
     def enviar(self,output_data):
+
+
+
         s = socket()
         s.connect((self.ipServer, 6030))
 
         if output_data:
+            print("envio:",output_data)
             # Enviar entrada. Comptabilidad con Python 3.
             try:
                 s.send(output_data)
@@ -23,6 +27,8 @@ class Cliente():
             input_data = s.recv(1024)
             if input_data:
                 input_data=input_data.decode("utf-8")
+
+
 
                 if input_data!="ok":
                     if input_data=="not ok":
@@ -36,6 +42,7 @@ class Cliente():
 
                 elif input_data=="ok":
                     return "ok"
+
                 else:
                     return input_data
 

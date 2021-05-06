@@ -44,20 +44,20 @@ def compruebaBlockchain():
         transacciones=consultaTransacciones()
 
         #despues de haber cargado mi base de datos, actualizo
-        # actuaizar()
+        actuaizar()
 
         for transaccion in transacciones:
             blockchain.add_transaccion_minada(transaccion)
 
     else:
         #si no existe un bloque genesis, es que soy nuevo y me registro
-        # register_me()
-            pass
+        register_me()
+
 
 '''Construye un bloque objeto a partir de un boque diccionario, que es el que te da la base de datos'''
 def construirBloque(bloque):
     block = Block()
-
+    print("hash del bloque",bloque["_id"])
     block.set_hash(bloque["_id"])
     block.indice = int(bloque["indice"])
     block.transacciones = bloque["transacciones"]
@@ -67,10 +67,10 @@ def construirBloque(bloque):
     block.MAX_TRANS = bloque["MAX_TRANS"]
     block.trabajo = bloque["trabajo"]
     return block
+
 @app.route('/borrar',methods=['GET'])
 def reset():
     resetearBlockchain()
-
     return render_template("home.html")
 
 
@@ -79,7 +79,6 @@ def new_transaction():
 
     #dato de la transacción
     tx_data = request.form['transaccionDatos']
-
 
     hashT=None
     transaccion=blockchain.add_new_transaction(tx_data)
@@ -111,6 +110,8 @@ def get_chain():
 def mine_unconfirmed_transactions():
     compruebaBlockchain()
     bloque = blockchain.mine()
+    if bloque==-1:
+        return render_template("home.html",minado=-1,indice=False)
     nodos=BaseDeDatos.cargarNodos()
     #guardo todas las respuestas
     respuestas=[]
@@ -127,8 +128,7 @@ def mine_unconfirmed_transactions():
     #lo guardo en mi blockchain y le digo al resto de nodos que lo guarden
     if contadorOk== len(nodos):
         guardar_bloque(bloque)
-    if bloque==-1:
-        return render_template("home.html",minado=-1,indice=False)
+
 
     result=bloque.get_indice()
 
@@ -143,14 +143,21 @@ def register_me():
     #enviar un hello al nodo padre, esta ip luego será una variable de entorno
     cliente=Cliente("10.129.84.116")
     listaIP=cliente.enviar("hello padre")
-    addNodo("10.129.84.116")
+    miListaIPS=BaseDeDatos.cargarNodos()
+    if "10.129.84.116" not in miListaIPS:
+        addNodo("10.129.84.116")
 
-
-    for ip in listaIP:
-        addNodo(ip)
-        #una vez tengo la lista de ips, voy a enviar un hello a todos los dem'as nodos para que me agreguen a su lista
-        nuevoCliente=Cliente(ip)
-        nuevoCliente.enviar("hello")
+    myIP="10.129.84.148"
+    if listaIP!="no hay nodos":
+        for ip in listaIP:
+            try:
+                if ip != myIP:
+                    addNodo(ip)
+                    #una vez tengo la lista de ips, voy a enviar un hello a todos los dem'as nodos para que me agreguen a su lista
+                    nuevoCliente=Cliente(ip)
+                    nuevoCliente.enviar("hello")
+            except:
+                print("El nodo con ip {} no esta conectado".format(ip))
 
     solicitar_blockchain()
 
@@ -163,18 +170,23 @@ def actuaizar():
     se diferencia sobretodo en que tiene que comparar lo que ya tiene con los nuevos datos para que no guarde cosas repetidas.
 
     '''
-
+    pprint("Actualizo mis datos")
     #solicito de nuevo la lista de ips
     # solo le solicito las cosas al nodos padre, pero para que funcionara realmente como una blockchain, deberia de solicitarlo a todos y luego comparar
     # y asi asegurarme de que esta todo bien
     cliente=Cliente("10.129.84.116")
     listaIPNueva=cliente.enviar("hello padre")
-
+    myIP="10.129.84.148"
     #cojo mi lista de ips para comparar si se ha unido alguien nuevo, y si lo ha hecho, agregarlo
     miListaIP=cargarNodos()
+    pprint(listaIPNueva)
+    pprint(miListaIP)
+    pprint(myIP)
     for nuevaIp in listaIPNueva:
-        if nuevaIp not in miListaIP:
-            addNodo(nuevaIp)
+        if nuevaIp!=myIP:
+            if nuevaIp not in miListaIP:
+                addNodo(nuevaIp)
+
 
     #solicito último bloque y lo comparto con el mio, si no es el mismo, solicito la blockchain desde el indice de mi bloque.
     miUltimoBloque=consultaUltimoBloque()
@@ -183,29 +195,41 @@ def actuaizar():
 
     #le solicito el ultimo bloque al padre
     ultimoBloqueBlockchain=cliente.enviar("ultimoBloque")
+
     print("su bloque",ultimoBloqueBlockchain[0])
     ultimoBloqueBlockchain=construirBloque(json.loads(ultimoBloqueBlockchain[0]))
     #comparo el hash. Si no coinciden, solicito la blockchain desde el indice de mi último bloque
     if miUltimoBloque.get_hash()!=ultimoBloqueBlockchain.get_hash():
         indice=miUltimoBloque.indice
-        string="BlockchainIndice"+"#"+str(indice)
-        nuevoBlockchain=cliente.enviar(string)
+
+
+        nuevaBlockchain=[]
+
+
+        for i in range(int(indice),int(ultimoBloqueBlockchain["indice"])):
+            string="Indice"+"#"+str(i)
+            nuevaBlockchain.append(cliente.enviar(string))
 
         for bloqueString in nuevoBlockchain:
-            bloque=json.loads(bloqueString)
+            bloque = construirBloque(json.loads(bloqueString))
             guardar_bloque(bloque)
 
-        #despues de actulizar, cargo mi ultimo bloque a la blockchain
-        ultimoBloque=consultaUltimoBloque()
-        block=construirBloque(ultimoBloque)
 
-        blockchain.cargarBlock(block)
 
 
 #deberia soliticitarla a todos los nodos, para luego comparar y que tengan coherencia, pero para simplificar, solo voy a pedirselo al padre.
 def solicitar_blockchain():
     cliente=Cliente("10.129.84.116")
-    nuevaBlockchain=cliente.enviar("solicitud")
+    nuevaBlockchain=[]
+
+    lenBlockchain=cliente.enviar("solicitud")[0]
+    print("la longitud de la blockchain es:",lenBlockchain)
+    for i in range(0,int(lenBlockchain)+1):
+        string="Indice"+"#"+str(i)
+        block=cliente.enviar(string)[0]
+        print(block)
+        nuevaBlockchain.append(block)
+
 
     for bloqueString in nuevaBlockchain:
         bloque = construirBloque(json.loads(bloqueString))

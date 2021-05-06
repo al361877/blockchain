@@ -107,6 +107,8 @@ class ServidorPrueba(Thread):
 
     def __init__(self):
         Thread.__init__(self)
+        # Esta ip luego será una variable de entorno
+        self.myIP="10.129.84.148"
         try:
             self.clientes=BaseDeDatos.cargarNodos()
         except:
@@ -114,24 +116,29 @@ class ServidorPrueba(Thread):
 
     #añado el nodo a mi lista de nodos
     def add_cliente(self,ip):
-        self.clientes.append(ip)
-        BaseDeDatos.addNodo(ip)
+
+        if ip!=self.myIP or ip not in self.clientes:
+            self.clientes.append(ip)
+            BaseDeDatos.addNodo(ip)
 
 
     def run(self):
         s = socket()
 
-        # Esta ip luego será una variable de entorno
-        myIP="10.129.84.116"
-        s.bind((myIP, 6030))
+       # Esta ip luego será una variable de entorno
+
+        s.bind((self.myIP, 6030))
         s.listen(0)
 
         while True:
             conn, addr = s.accept()
             c = Client(conn, addr)
-            ip=addr[0]
 
-            if ip!=myIP:
+
+
+            #si la ip del cliente no lo tenia en mi lista de nodos, lo agrego
+            ip=addr[0]
+            if ip!=self.myIP:
                 c.start()
 
                 #si la ip del cliente no lo tenia en mi lista de nodos, lo agrego
