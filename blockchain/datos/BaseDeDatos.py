@@ -5,6 +5,7 @@ import pymongo
 
 from pymongo import MongoClient
 
+import BlockchainController
 
 myclient = pymongo.MongoClient('mongodb://localhost:27017/')
 
@@ -64,17 +65,29 @@ def consultaUltimoBloque():
 
         return x
 
-#devuelve la blockchain desde ese indice
-def blockchainIndice(indice):
-    nuevaBlockchain=[]
-    ultimoBloque = consultaUltimoBloque()
-    for i in range(indice,int(ultimoBloque["indice"])):
-        myquery={"indice":i}
-        for x in myquery:
-            print(x)
-            nuevaBlockchain.append(x)
+# #devuelve la blockchain desde ese indice
+# def blockchainIndice(indice):
+#     nuevaBlockchain=[]
+#     ultimoBloque = consultaUltimoBloque()
+#     print(int(ultimoBloque["indice"]))
+#     print(ultimoBloque)
+#     for i in range(int(indice),int(ultimoBloque["indice"])):
+#         myquery={"indice":i}
+#         for x in myquery:
+#             print(x)
+#             nuevaBlockchain.append(x)
+#
+#     return nuevaBlockchain
 
-    return nuevaBlockchain
+#devuelve un bloque pasandole un indice como argumento, sirve para enviar bloque a bloque
+def bloqueIndice(indice):
+
+    myquery = {"indice": int(indice)}
+    mydoc = bloquesdb.find(myquery)
+    for x in mydoc:
+        return x
+
+
 
 
 def consultaNombre():
@@ -114,5 +127,6 @@ def eliminarNodos():
     nodosdb.delete_many({})
 
 if __name__ == "__main__":
-    eliminarNodos()
+
     eliminarDatos()
+    eliminarNodos()

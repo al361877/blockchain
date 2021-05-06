@@ -124,15 +124,17 @@ class Blockchain:
             print("compleeetooo")
             BlockchainController.mine_unconfirmed_transactions()
 
-            bloqueNuevo=self.__bloque_sin_minar=Block()
-            trans=bloqueNuevo.add_transaccion(transaction,time.ctime(time.time()))
+            bloqueNuevo = self.__bloque_sin_minar = Block()
+            trans = bloqueNuevo.add_transaccion(transaction, time.ctime(time.time()))
 
         return trans
+
     def add_transaccion_minada(self,transaccion):
         if(not self.__bloque_sin_minar.completo()):
            self.__bloque_sin_minar.add_transaccion_minada(transaccion)
         else:
-            self.mine()
+            print("compleeetooo")
+            BlockchainController.mine_unconfirmed_transactions()
             bloqueNuevo=self.__bloque_sin_minar=Block()
             bloqueNuevo.add_transaccion_minada(transaccion)
 

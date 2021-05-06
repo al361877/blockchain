@@ -166,9 +166,7 @@ def register_me():
 def actuaizar():
     '''
     este metodo es similar al anterior de registrarme, pero con la diferencia de que se ejecuta cada vez que arranco el programa
-
     se diferencia sobretodo en que tiene que comparar lo que ya tiene con los nuevos datos para que no guarde cosas repetidas.
-
     '''
     pprint("Actualizo mis datos")
     #solicito de nuevo la lista de ips
@@ -210,7 +208,7 @@ def actuaizar():
             string="Indice"+"#"+str(i)
             nuevaBlockchain.append(cliente.enviar(string))
 
-        for bloqueString in nuevoBlockchain:
+        for bloqueString in nuevaBlockchain:
             bloque = construirBloque(json.loads(bloqueString))
             guardar_bloque(bloque)
 
@@ -248,7 +246,6 @@ def mi_consenso(bloque):
 def guardar_bloque(bloque):
     """
     Despues de que el bloque haya sido aceptado por el consenso, todos lo guardan en su blockchain
-
     Este metodo es llamado desde el servidor que ha confirmado el bloque
     """
     #lo agrego a la blockchain local y a la de la base de datos
