@@ -46,7 +46,15 @@ class Client(Thread):
                         print("envio bloque",bloqueString)
                         self.conn.send(bytes(bloqueString, "utf-8"))
 
+                    elif lista[0]=="hashDato":
+                        transaccion=BaseDeDatos.verificaTransaccion(lista[1])
 
+                        if transaccion:
+                            # le digo al cliente que esta ok
+                            self.conn.send(bytes("ok", "utf-8"))
+                        else:
+                            # le hago saber que no esta bien
+                            self.conn.send(bytes("not ok", "utf-8"))
 
                     elif msg=="hello padre":
                         # si es un hello, envio mi lista de ips (solo si es el nodo padre, si no lo es, no hace nada)
@@ -89,6 +97,7 @@ class Client(Thread):
                         print("me llega el bloque ",bloque)
                         if bloque:
                             BlockchainController.guardar_bloque(bloque)
+                            BlockchainController.guardar_transacciones(bloque)
                             # le digo al cliente que esta ok
                             self.conn.send(bytes("ok", "utf-8"))
                         else:

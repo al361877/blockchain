@@ -7,9 +7,10 @@ class Transaccion:
     hash=None
     Nonce=0
 
-    def __init__(self,dato,fecha):
-        self.dato=dato
-        self.fecha=fecha
+
+    def __init__(self,hashDato):
+        self.hashDato=hashDato              #dato realmente no es dato como tal, será un hash generado por el usuario
+
 
     def compute_hash(self):
          transaccion_string = json.dumps(self.__dict__, sort_keys=True)

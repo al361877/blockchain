@@ -119,13 +119,13 @@ class Blockchain:
 
         #si el bloque que tengo que minar aun no esta lleno, le meto la transacción, si ya lo está, lo mino y añado uno nuevo
         if(not self.__bloque_sin_minar.completo()):
-            trans=self.__bloque_sin_minar.add_transaccion(transaction,time.ctime(time.time()))
+            trans=self.__bloque_sin_minar.add_transaccion(transaction)
         else:
-            print("compleeetooo")
+
             BlockchainController.mine_unconfirmed_transactions()
 
             bloqueNuevo = self.__bloque_sin_minar = Block()
-            trans = bloqueNuevo.add_transaccion(transaction, time.ctime(time.time()))
+            trans = bloqueNuevo.add_transaccion(transaction)
 
         return trans
 
@@ -133,7 +133,7 @@ class Blockchain:
         if(not self.__bloque_sin_minar.completo()):
            self.__bloque_sin_minar.add_transaccion_minada(transaccion)
         else:
-            print("compleeetooo")
+
             BlockchainController.mine_unconfirmed_transactions()
             bloqueNuevo=self.__bloque_sin_minar=Block()
             bloqueNuevo.add_transaccion_minada(transaccion)

@@ -254,6 +254,12 @@ def guardar_bloque(bloque):
     add_block_db(bloque)
 
 
+def guardar_transacciones(bloque):
+    transacciones=bloque.get_transacciones()
+    for transaccion in transacciones:
+        BaseDeDatos.almacenar_transaccion_block_aceptado(transaccion,transaccion[transaccion],bloque.get_hash())
+
+
 
 
 

@@ -96,8 +96,8 @@ def consultaNombre():
 
 #se almacenara la transaccion direcctamente, sin haber minado el bloque
 def almacenar_transaccion(transaccion):
-    transaccionesdb.insert({"_id": transaccion.hash, "fecha": transaccion.fecha, "dato": transaccion.dato,
-             "Nonce": transaccion.Nonce,"bloque":"bloque no minado"})
+    transaccionesdb.insert({"_id": transaccion.hash, "hashDato": transaccion.dato,
+             "bloque":"bloque no minado"})
 
 
 #se pone la direccion del bloque ya minado
@@ -111,6 +111,24 @@ def consultaTransacciones():
     for x in transaccionesdb.find(myquery):
         yield x
 
+def verificaTransaccion(dato):
+    myquery = {"hashDato": dato}
+    transaccion=False
+    for x in transaccionesdb.find(myquery):
+        transaccion=x
+
+    #si esta en el nodo, pero no esta minado, no sirve, ya que significa que solo estara localmente.
+    if transaccion["bloque"]=="bloque no minado":
+        return False
+
+    #si sigue siendo false, significa que no esta en este nodo
+    return transaccion
+
+def almacenar_transaccion_block_aceptado(hashB,hashD,hashBlock):
+    transaccionesdb.insert({"_id": hashB, "hashDato": hashD,
+                            "bloque": hashBlock})
+
+
 def addNodo(ip):
 
     nodosdb.insert({"ip":ip})
@@ -119,6 +137,7 @@ def consultaNodo(ip):
     myquery={"ip":ip}
     for x in nodosdb.find(myquery):
         return x
+
 def cargarNodos():
     nodos=[]
     for nodo in nodosdb.find({}):

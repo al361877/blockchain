@@ -28,8 +28,6 @@ class Cliente():
             if input_data:
                 input_data=input_data.decode("utf-8")
 
-
-
                 if input_data!="ok":
                     if input_data=="not ok":
                         return "not ok"
