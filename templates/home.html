@@ -84,7 +84,14 @@
         <div class="container" >
             <p class="body">Insertar una transacción</p>
             <form action="/add" method="POST" >
-                 <input class="form-control"  type="search" id="transaccionDatos" name="transaccionDatos" placeholder="Transaccion">
+                <div>
+                    <div style="float:left;width: 30%;"> <input class="form-control"  type="search" id="transaccionDatos" name="transaccionDatos" placeholder="Hash Dato"></div>
+                    <div style="float:left;width: 30%;"> <input class="form-control"  type="search" id="user" name="user" placeholder="Nombre usuario"></div>
+
+                </div>
+
+
+                <br>
                 <br>
                 <input class="botonDescargar" type="submit" value="Enviar">
 
@@ -95,8 +102,15 @@
          <div class="container" >
                 <p class="body">Consultar transaccion </p>
                 <form action="/consulta" method="POST" >
-                 <input class="form-control"  type="search" id="consulta" name="consulta" placeholder="Hash">
-                <br>
+
+                     <div>
+                        <div style="float:left;width: 30%;"> <input class="form-control"  type="search" id="consulta" name="consulta" placeholder="Hash Dato"></div>
+
+                        <div style="float:left;width: 30%;"> <input class="form-control"  type="search" id="user" name="user" placeholder="Nombre usuario"></div>
+
+                    </div>
+
+                <br><br>
                 <input class="botonDescargar" type="submit" value="Consulta">
 
                 </form>
@@ -132,7 +146,16 @@
         </table>
 
 
-   <div class="container">
+<!--   <div class="container">-->
+<!--        {%if consultaT%}-->
+<!--            <p class="body">{{token}} </p>-->
+
+<!--        {%endif%}-->
+
+<!--    </div>-->
+
+
+        <div class="container">
         {%if respuestaConsulta%}
             <p class="body">{{resultadoConsulta}} </p>
 

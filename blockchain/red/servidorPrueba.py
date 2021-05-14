@@ -46,9 +46,9 @@ class Client(Thread):
                         print("envio bloque",bloqueString)
                         self.conn.send(bytes(bloqueString, "utf-8"))
 
-                    elif lista[0]=="hashDato":
+                    #se consulta una transaccion en todos los nodos de la blockchain
+                    elif lista[0]=="hashB":
                         transaccion=BaseDeDatos.verificaTransaccion(lista[1])
-
                         if transaccion:
                             # le digo al cliente que esta ok
                             self.conn.send(bytes("ok", "utf-8"))

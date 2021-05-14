@@ -1,12 +1,13 @@
 from pprint import pprint
 
 from flask import Flask, request, render_template
-
+import time
 import requests
 from blockchain.Modelo.Blockchain import Blockchain
 
 import json
 from blockchain.Modelo.Block import Block
+from blockchain.Modelo.Log import Log
 from blockchain.datos import BaseDeDatos
 from blockchain.red.clientePrueba import Cliente
 
@@ -30,28 +31,34 @@ def home():
 
 #este metodo primero mira si hay una blockchain ya creada, si lo está "la carga", si no la crea
 def compruebaBlockchain():
+
     #este metodo devuelve el primer bloque, es decir, el genesis
     bloqueGenesis=BaseDeDatos.encuentraUnBloque()
     blockchain.set_genesis(bloqueGenesis)
+
     if bloqueGenesis:
         #si existe la base de datos solo tengo que cargar el 'ultimo bloque
-        #bloque=consultaUltimoBloque()
         bloque=consultaUltimoBloque()
+
         #creo el nuevo bloque, que será una copia del último añadido en la bbdd
         block=construirBloque(bloque)
         blockchain.cargarBlock(block)
+
         #miro las últimas transacciones no minadas y se las añado al bloque sin minar de mi blockchain
         transacciones=consultaTransacciones()
 
         #despues de haber cargado mi base de datos, actualizo
-        actuaizar()
+        #actuaizar()
 
         for transaccion in transacciones:
             blockchain.add_transaccion_minada(transaccion)
 
     else:
         #si no existe un bloque genesis, es que soy nuevo y me registro
-        register_me()
+        #register_me()
+
+        #el padre si es nuevo no se tiene que registrar
+        pass
 
 
 
@@ -79,20 +86,42 @@ def reset():
 def new_transaction():
 
     #dato de la transacción
-    tx_data = request.form['transaccionDatos']
+    hashDato = request.form['transaccionDatos']
 
-    hashT=None
-    transaccion=blockchain.add_new_transaction(tx_data)
+    usuario=request.form['user']
+    guardar_log_registro(usuario,hashDato)
+    hashB=None
+    transaccion=blockchain.add_new_transaction(hashDato)
     if transaccion:
-        hashT=transaccion.hash
+        hashB=transaccion.hash
         almacenarTransaccion(transaccion)
-        print(hashT)
-    return render_template("home.html",consultaT=True,token=hashT)
+        print(hashB)
+    guardar_hashes(hashDato,hashB)
+    return render_template("home.html",consultaT=True,token=hashB)
 
 @app.route('/consulta', methods=['POST'])
 def consulta():
-
+    usuario = request.form['user']
     hash=request.form['consulta']
+    guardar_log_consulta(usuario,hash)
+
+    nodos = BaseDeDatos.cargarNodos()
+
+    # guardo todas las respuestas
+    respuestas = []
+
+    # envio el bloque a todos los nodos de la blockchain
+    for ipNodo in nodos:
+        cliente = Cliente(ipNodo)
+        respuesta = cliente.enviar(("hashB",hash))
+        respuestas.append(respuesta)
+    # cuento las respuestas ok, si estas son igual al numero de nodos
+    contadorOk = 0
+    for respuesta in respuestas:
+        if respuesta == "ok":
+            contadorOk += 1
+    if contadorOk == len(nodos):
+        return render_template("home.html", resultadoConsulta="la transaccion esta correctamente en la blockchain", respuestaConsulta=True)
     resultadoConsulta= consultaTransaccion(hash)
     return render_template("home.html",resultadoConsulta=resultadoConsulta,respuestaConsulta=True)
 
@@ -116,6 +145,7 @@ def mine_unconfirmed_transactions():
     nodos=BaseDeDatos.cargarNodos()
     #guardo todas las respuestas
     respuestas=[]
+
     #envio el bloque a todos los nodos de la blockchain
     for ipNodo in nodos:
         cliente=Cliente(ipNodo)
@@ -325,3 +355,39 @@ def cargarNodos():
 
 def addNodo(ip):
     BaseDeDatos.addNodo(ip)
+
+########### LOGS ############
+
+def guardar_log_registro(usuario,hashDato):
+    #primero miro el indice del ultimo log
+    ultimoLog=BaseDeDatos.consultaUltimoLog()
+
+    #si no existe ningun log, significa que este es el primero y el indice sera 1
+    if ultimoLog:
+        indice=ultimoLog['indice']
+        miIndice = int(indice) + 1
+        log = Log(miIndice,usuario,time.ctime(time.time()),hashDato,"Registro")
+    else:
+        log = Log(0, usuario, time.ctime(time.time()), hashDato, "Registro")
+
+    BaseDeDatos.almacenar_log(log)
+
+def guardar_log_consulta(usuario,hashDato):
+    # primero miro el indice del ultimo log
+    ultimoLog = BaseDeDatos.consultaUltimoLog()
+    # si no existe ningun log, significa que este es el primero y el indice sera 1
+    if ultimoLog:
+        indice = ultimoLog['indice']
+        miIndice = int(indice) + 1
+        log = Log(miIndice, usuario, time.ctime(time.time()), hashDato, "Consulta")
+
+    else:
+        log = Log(0, usuario, time.ctime(time.time()), hashDato, "Consulta")
+
+    BaseDeDatos.almacenar_log(log)
+
+######### HASHES #############
+def guardar_hashes(hashDato,hashB):
+    BaseDeDatos.almacenar_hashes(hashDato,hashB)
+
+

@@ -14,6 +14,23 @@ bloquesdb=db['bloques']
 transaccionesdb=db['transacciones']
 nodosdb=db['nodos']
 
+#############################################
+#Estas tablas solo seran para el nodo padre.#
+#############################################
+
+#tabla de logs
+logsdb=db['logsTable']
+
+
+#tabla de hahses
+hashesdb=db['hashesTable']
+
+
+
+###########################################################
+#############         BLOQUES         #####################
+###########################################################
+
 def almacenar_genesis(genesis):
     dato = genesis.__dict__
     bloquesdb.insert(dato)
@@ -65,38 +82,28 @@ def consultaUltimoBloque():
 
         return x
 
-# #devuelve la blockchain desde ese indice
-# def blockchainIndice(indice):
-#     nuevaBlockchain=[]
-#     ultimoBloque = consultaUltimoBloque()
-#     print(int(ultimoBloque["indice"]))
-#     print(ultimoBloque)
-#     for i in range(int(indice),int(ultimoBloque["indice"])):
-#         myquery={"indice":i}
-#         for x in myquery:
-#             print(x)
-#             nuevaBlockchain.append(x)
-#
-#     return nuevaBlockchain
 
 #devuelve un bloque pasandole un indice como argumento, sirve para enviar bloque a bloque
 def bloqueIndice(indice):
-
-
     myquery = {"indice": int(indice)}
     mydoc = bloquesdb.find(myquery)
     for x in mydoc:
         return x
 
 
-
-
 def consultaNombre():
     return db.list_collection_names()
 
+
+
+###########################################################
+#############      TRANSACCIONES      #####################
+###########################################################
+
+
 #se almacenara la transaccion direcctamente, sin haber minado el bloque
 def almacenar_transaccion(transaccion):
-    transaccionesdb.insert({"_id": transaccion.hash, "hashDato": transaccion.dato,
+    transaccionesdb.insert({"_id": transaccion.hash, "hashDato": transaccion.hashDato,
              "bloque":"bloque no minado"})
 
 
@@ -111,8 +118,8 @@ def consultaTransacciones():
     for x in transaccionesdb.find(myquery):
         yield x
 
-def verificaTransaccion(dato):
-    myquery = {"hashDato": dato}
+def verificaTransaccion(hash):
+    myquery = {"_id": hash}
     transaccion=False
     for x in transaccionesdb.find(myquery):
         transaccion=x
@@ -128,6 +135,9 @@ def almacenar_transaccion_block_aceptado(hashB,hashD,hashBlock):
     transaccionesdb.insert({"_id": hashB, "hashDato": hashD,
                             "bloque": hashBlock})
 
+###########################################################
+#############           NODOS         #####################
+###########################################################
 
 def addNodo(ip):
 
@@ -143,8 +153,80 @@ def cargarNodos():
     for nodo in nodosdb.find({}):
         nodos.append(nodo["ip"])
     return nodos
+
 def eliminarNodos():
     nodosdb.delete_many({})
+
+
+
+###########################################################
+#############           LOGS          #####################
+###########################################################
+def almacenar_log(log):
+    logsdb.insert(log.toDict())
+
+#consulta los logs mediante el hash del dato
+def consultar_log_hashD(hashD):
+    myquery = {"hashDato": hashD}
+    logs=[]
+    for x in logsdb.find(myquery):
+        logs.append(x)
+    return logs
+
+def consulta_log_user(user):
+    myquery = {"user": user}
+    logs = []
+    for x in logsdb.find(myquery):
+        logs.append(x)
+    return logs
+
+def consulta_log_fecha(fecha):
+    myquery = {"fecha": fecha}
+    logs = []
+    for x in logsdb.find(myquery):
+        logs.append(x)
+    return logs
+
+def consulta_log_motivo(motivo):
+    myquery = {"motivo": motivo}
+    logs = []
+    for x in logsdb.find(myquery):
+        logs.append(x)
+    return logs
+
+def consultaUltimoLog():
+    log=logsdb.find().sort("indice",-1).limit(1)
+    for x in log:
+
+        return x
+
+
+def elimina_logs():
+    logsdb.delete_many({})
+
+###########################################################
+#############           HASH          #####################
+###########################################################
+def almacenar_hashes(hashDato,hashBlockchain):
+    hashesdb.insert({"_id": hashDato, "hashBlockchain": hashBlockchain})
+
+def consulta_hahses_hashDato(hashDato):
+    myquery = {"_id": hashDato}
+    hashes = []
+    for x in hashesdb.find(myquery):
+        hashes.append(x)
+    return hashes
+
+def consulta_hahses_hashB(hahsB):
+    myquery = {"hashBlockchain": hahsB}
+    hashes = []
+    for x in hashesdb.find(myquery):
+        hashes.append(x)
+    return hashes
+
+def elimina_hashes():
+    hashesdb.delete_many({})
+
 
 if __name__ == "__main__":
 
