@@ -1,11 +1,11 @@
 import json
 from pprint import pprint
-
+import os
 import pymongo
 
 from pymongo import MongoClient
 
-import BlockchainController
+
 
 myclient = pymongo.MongoClient('mongodb://localhost:27017/')
 
@@ -124,10 +124,12 @@ def verificaTransaccion(hash):
     for x in transaccionesdb.find(myquery):
         transaccion=x
 
-    #si esta en el nodo, pero no esta minado, no sirve, ya que significa que solo estara localmente.
-    if transaccion["bloque"]=="bloque no minado":
-        return False
-
+    if transaccion:
+        print(transaccion["bloque"])
+        #si esta en el nodo, pero no esta minado, no sirve, ya que significa que solo estara localmente.
+        if transaccion["bloque"]=="bloque no minado":
+            return False
+    print(transaccion)
     #si sigue siendo false, significa que no esta en este nodo
     return transaccion
 
@@ -229,6 +231,5 @@ def elimina_hashes():
 
 
 if __name__ == "__main__":
-
-    eliminarDatos()
-    eliminarNodos()
+    myIP=os.getenv('MYIP')
+    print(myIP)

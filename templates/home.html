@@ -193,9 +193,9 @@
                     <p class="body">Transacciones: </p>
                 {%for transaccion in bloque["transacciones"]%}
 
-                    <p class="body">-> Hash de la transaccion {{transaccion}} </p>
-                    <p class="body">-> -> Fecha de la transaccion {{bloque["transacciones"][transaccion][0]}} </p>
-                    <p class="body">-> -> Dato de la transaccion {{bloque["transacciones"][transaccion][1]}} </p>
+                    <p class="body">-> HashBlockchain de la transaccion {{transaccion}} </p>
+
+                    <p class="body">-> -> HashDato de la transaccion {{bloque["transacciones"][transaccion]}} </p>
                 {%endfor%}
                 {%endif%}
             </div>

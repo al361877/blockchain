@@ -48,17 +48,17 @@ def compruebaBlockchain():
         transacciones=consultaTransacciones()
 
         #despues de haber cargado mi base de datos, actualizo
-        #actuaizar()
+        actuaizar()
 
         for transaccion in transacciones:
             blockchain.add_transaccion_minada(transaccion)
 
     else:
         #si no existe un bloque genesis, es que soy nuevo y me registro
-        #register_me()
+        register_me()
 
         #el padre si es nuevo no se tiene que registrar
-        pass
+        #pass
 
 
 
@@ -69,7 +69,7 @@ def construirBloque(bloque):
     block.set_hash(bloque["_id"])
     block.indice = int(bloque["indice"])
     block.transacciones = bloque["transacciones"]
-    block.fecha = bloque["fecha"]
+
     block.prev_hash = bloque["prev_hash"]
     block.Nonce = bloque["Nonce"]
     block.MAX_TRANS = bloque["MAX_TRANS"]
@@ -172,13 +172,13 @@ def mine_unconfirmed_transactions():
 #este metodo se usa cuando llega un nuevo nodo a la blockchain
 def register_me():
     #enviar un hello al nodo padre, esta ip luego será una variable de entorno
-    cliente=Cliente("10.129.84.116")
+    cliente=Cliente("10.129.84.108")
     listaIP=cliente.enviar("hello padre")
     miListaIPS=BaseDeDatos.cargarNodos()
-    if "10.129.84.116" not in miListaIPS:
-        addNodo("10.129.84.116")
+    if "10.129.84.108" not in miListaIPS:
+        addNodo("10.129.84.108")
 
-    myIP="10.129.84.148"
+    myIP="10.129.84.108"
     if listaIP!="no hay nodos":
         for ip in listaIP:
             try:
@@ -203,9 +203,9 @@ def actuaizar():
     #solicito de nuevo la lista de ips
     # solo le solicito las cosas al nodos padre, pero para que funcionara realmente como una blockchain, deberia de solicitarlo a todos y luego comparar
     # y asi asegurarme de que esta todo bien
-    cliente=Cliente("10.129.84.116")
+    cliente=Cliente("10.129.84.108")
     listaIPNueva=cliente.enviar("hello padre")
-    myIP="10.129.84.148"
+    myIP="10.129.84.109"
     #cojo mi lista de ips para comparar si se ha unido alguien nuevo, y si lo ha hecho, agregarlo
     miListaIP=cargarNodos()
     pprint(listaIPNueva)
@@ -248,7 +248,7 @@ def actuaizar():
 
 #deberia soliticitarla a todos los nodos, para luego comparar y que tengan coherencia, pero para simplificar, solo voy a pedirselo al padre.
 def solicitar_blockchain():
-    cliente=Cliente("10.129.84.116")
+    cliente=Cliente("10.129.84.108")
     nuevaBlockchain=[]
 
     lenBlockchain=cliente.enviar("solicitud")[0]
