@@ -1,6 +1,6 @@
 import json
 from pprint import pprint
-import os
+
 import pymongo
 
 from pymongo import MongoClient
@@ -231,5 +231,6 @@ def elimina_hashes():
 
 
 if __name__ == "__main__":
-    myIP=os.getenv('MYIP')
-    print(myIP)
+
+    eliminarDatos()
+    eliminarNodos()

@@ -148,17 +148,28 @@ def mine_unconfirmed_transactions():
 
     #envio el bloque a todos los nodos de la blockchain
     for ipNodo in nodos:
-        cliente=Cliente(ipNodo)
-        respuesta=cliente.enviar(json.dumps(bloque.__dict__, sort_keys=False))
-        respuestas.append(respuesta)
+        try:
+            cliente=Cliente(ipNodo)
+            respuesta=cliente.enviar(json.dumps(bloque.__dict__, sort_keys=False))
+            respuestas.append(respuesta)
+        except:
+            print("El nodo con ip {} no esta conectado")
     #cuento las respuestas ok, si estas son igual al numero de nodos
     contadorOk=0
     for respuesta in respuestas:
         if respuesta=="ok":
             contadorOk+=1
     #lo guardo en mi blockchain y le digo al resto de nodos que lo guarden
-    if contadorOk== len(nodos):
+    if contadorOk== len(respuestas):
         guardar_bloque(bloque)
+        for ipNodo in nodos:
+            try:
+                cliente=Cliente(ipNodo)
+                cliente.enviar("confirmado")
+            except:
+                print("El nodo con ip {} no esta conectado")
+
+
 
 
     result=bloque.get_indice()
@@ -178,12 +189,11 @@ def register_me():
     if "10.129.84.108" not in miListaIPS:
         addNodo("10.129.84.108")
 
-    myIP="10.129.84.108"
+    myIP="10.129.84.109"
     if listaIP!="no hay nodos":
         for ip in listaIP:
             try:
-                if ip != myIP:
-                    addNodo(ip)
+                if ip != myIP or ip != "10.129.84.108":
                     #una vez tengo la lista de ips, voy a enviar un hello a todos los dem'as nodos para que me agreguen a su lista
                     nuevoCliente=Cliente(ip)
                     nuevoCliente.enviar("hello")
@@ -231,16 +241,15 @@ def actuaizar():
     if miUltimoBloque.get_hash()!=ultimoBloqueBlockchain.get_hash():
         indice=miUltimoBloque.indice
 
-
         nuevaBlockchain=[]
 
-
-        for i in range(int(indice),int(ultimoBloqueBlockchain["indice"])):
-            string="Indice"+"#"+str(i)
+        for i in range(int(indice),int(ultimoBloqueBlockchain.indice)):
+            string="Indice"+"#"+str(i+1)
             nuevaBlockchain.append(cliente.enviar(string))
 
         for bloqueString in nuevaBlockchain:
-            bloque = construirBloque(json.loads(bloqueString))
+            print(bloqueString)
+            bloque = construirBloque(json.loads(bloqueString[0]))
             guardar_bloque(bloque)
 
 
@@ -285,11 +294,18 @@ def guardar_bloque(bloque):
 
 
 def guardar_transacciones(bloque):
+    print("guardo transacciones")
     transacciones=bloque.get_transacciones()
+    print("las transacciones son: ",transacciones)
     for transaccion in transacciones:
-        BaseDeDatos.almacenar_transaccion_block_aceptado(transaccion,transaccion[transaccion],bloque.get_hash())
+        print("la tansaccion es : ",transaccion, "el value es:",transacciones[transaccion],"y el hash del bloque es",bloque.get_hash())
+        BaseDeDatos.almacenar_transaccion_block_aceptado(transaccion,transacciones[transaccion],bloque.get_hash())
 
-
+def confirmado():
+    bloque=blockchain.bloque_consenso
+    print(bloque)
+    guardar_bloque(bloque)
+    guardar_transacciones(bloque)
 
 
 

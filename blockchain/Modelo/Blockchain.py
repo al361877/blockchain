@@ -19,6 +19,7 @@ class Blockchain:
         self.__cadena = []
         self.__bloque_sin_minar=Block()
         self.genesis=0
+        self.bloque_consenso=0
 
     def crear_genesis_block(self):
         """
@@ -184,7 +185,7 @@ class Blockchain:
         bloque=json.loads(bloque)
 
         block.indice=int(bloque["indice"])
-        block.fecha=bloque["fecha"]
+
         block.Nonce=int(bloque["Nonce"])
         block.prev_hash=bloque["prev_hash"]
         block.transacciones=bloque["transacciones"]
@@ -195,6 +196,7 @@ class Blockchain:
 
         #para que sea valido, el nonce no se tiene que haber modificado y el hash tampoco
         if block.Nonce==int(bloque["Nonce"]) and bloque["_id"]==nuevoHash:
+            self.bloque_consenso=block
             return block
         else:
             print("ha habido un fallo")

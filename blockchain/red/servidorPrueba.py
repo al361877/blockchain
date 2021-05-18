@@ -90,15 +90,18 @@ class Client(Thread):
                         bloque=BaseDeDatos.consultaUltimoBloque()
                         print(bloque["indice"])
                         self.conn.send(bytes(str(bloque["indice"]),"utf-8"))
+
+                    elif msg=="confirmado":
+                        BlockchainController.confirmado()
+                        self.conn.send(bytes("ok", "utf-8"))
                     else:
 
                         #envio el bloque al consenso, si se confirma, le doy el ok y lo guardo en mi blockchain, sino, le digo que es erroneo
                         bloque = BlockchainController.mi_consenso(msg)
                         print("me llega el bloque ",bloque)
                         if bloque:
-                            BlockchainController.guardar_bloque(bloque)
-                            BlockchainController.guardar_transacciones(bloque)
                             # le digo al cliente que esta ok
+                            print("le digo al cliente que esta ok")
                             self.conn.send(bytes("ok", "utf-8"))
                         else:
                             # le hago saber que no esta bien
