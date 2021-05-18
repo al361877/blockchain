@@ -158,7 +158,7 @@ class Blockchain:
 
 
         bloque.indice=last_block.get_indice()+1
-        bloque.fecha=time.ctime(time.time())
+
         bloque.prev_hash=last_block.get_hash()
 
         #hago la prueba de trabajo para crear un hash bueno y se lo añado
