@@ -114,7 +114,7 @@ class ServidorPrueba(Thread):
     def __init__(self):
         Thread.__init__(self)
         # Esta ip luego será una variable de entorno
-        self.myIP="10.129.84.109"
+        self.myIP="192.168.0.121"
         try:
             self.clientes=BaseDeDatos.cargarNodos()
         except:
@@ -125,6 +125,7 @@ class ServidorPrueba(Thread):
 
         if ip!=self.myIP or ip not in self.clientes:
             self.clientes.append(ip)
+            print("añado",ip)
             BaseDeDatos.addNodo(ip)
 
 

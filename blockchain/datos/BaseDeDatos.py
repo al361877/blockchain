@@ -142,7 +142,7 @@ def almacenar_transaccion_block_aceptado(hashB,hashD,hashBlock):
 ###########################################################
 
 def addNodo(ip):
-
+    print("añado el nodo",ip)
     nodosdb.insert({"ip":ip})
 
 def consultaNodo(ip):
@@ -231,6 +231,4 @@ def elimina_hashes():
 
 
 if __name__ == "__main__":
-
-    eliminarDatos()
     eliminarNodos()

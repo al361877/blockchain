@@ -183,20 +183,20 @@ def mine_unconfirmed_transactions():
 #este metodo se usa cuando llega un nuevo nodo a la blockchain
 def register_me():
     #enviar un hello al nodo padre, esta ip luego será una variable de entorno
-    cliente=Cliente("10.129.84.108")
+    cliente=Cliente("192.168.0.119")
     listaIP=cliente.enviar("hello padre")
-    miListaIPS=BaseDeDatos.cargarNodos()
-    if "10.129.84.108" not in miListaIPS:
-        addNodo("10.129.84.108")
+    addNodo("192.168.0.119")
 
-    myIP="10.129.84.109"
+    myIP="192.168.0.121"
     if listaIP!="no hay nodos":
         for ip in listaIP:
             try:
-                if ip != myIP or ip != "10.129.84.108":
+                if ip != myIP:
+                    print("envio hello a",ip)
                     #una vez tengo la lista de ips, voy a enviar un hello a todos los dem'as nodos para que me agreguen a su lista
                     nuevoCliente=Cliente(ip)
                     nuevoCliente.enviar("hello")
+
             except:
                 print("El nodo con ip {} no esta conectado".format(ip))
 
@@ -213,17 +213,16 @@ def actuaizar():
     #solicito de nuevo la lista de ips
     # solo le solicito las cosas al nodos padre, pero para que funcionara realmente como una blockchain, deberia de solicitarlo a todos y luego comparar
     # y asi asegurarme de que esta todo bien
-    cliente=Cliente("10.129.84.108")
+    cliente=Cliente("192.168.0.119")
     listaIPNueva=cliente.enviar("hello padre")
-    myIP="10.129.84.109"
+    myIP="192.168.0.121"
     #cojo mi lista de ips para comparar si se ha unido alguien nuevo, y si lo ha hecho, agregarlo
     miListaIP=cargarNodos()
-    pprint(listaIPNueva)
-    pprint(miListaIP)
-    pprint(myIP)
+
     for nuevaIp in listaIPNueva:
         if nuevaIp!=myIP:
             if nuevaIp not in miListaIP:
+                print("la ip {} no estaba en mi lista".format(nuevaIp))
                 addNodo(nuevaIp)
 
 
@@ -257,12 +256,12 @@ def actuaizar():
 
 #deberia soliticitarla a todos los nodos, para luego comparar y que tengan coherencia, pero para simplificar, solo voy a pedirselo al padre.
 def solicitar_blockchain():
-    cliente=Cliente("10.129.84.108")
+    cliente=Cliente("192.168.0.119")
     nuevaBlockchain=[]
 
     lenBlockchain=cliente.enviar("solicitud")[0]
     print("la longitud de la blockchain es:",lenBlockchain)
-    for i in range(0,int(lenBlockchain)+1):
+    for i in range(0,int(lenBlockchain)):
         string="Indice"+"#"+str(i)
         block=cliente.enviar(string)[0]
         print(block)
