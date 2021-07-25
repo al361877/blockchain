@@ -1,6 +1,5 @@
 from socket import socket
 # Compatibilidad con Python 3
-from blockchain.datos import BaseDeDatos
 
 
 class Cliente():

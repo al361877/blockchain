@@ -137,7 +137,6 @@
 
                      <form action="/borrar" mehtod="GET">
 
-
                         <input  type="submit" class="botonBorrar" role="button"  name="Borrar" value="Borrar" >
 
                      </form>
@@ -146,13 +145,6 @@
         </table>
 
 
-<!--   <div class="container">-->
-<!--        {%if consultaT%}-->
-<!--            <p class="body">{{token}} </p>-->
-
-<!--        {%endif%}-->
-
-<!--    </div>-->
 
 
         <div class="container">
@@ -182,13 +174,13 @@
                 {% if bloque["indice"] == 0%}
                     <p class="body">Indice del bloque es: {{bloque["indice"]}}</p>
                     <p class="body">Su hash es: {{bloque["_id"]}}</p>
-                    <p class="body">Fecha: {{bloque["fecha"]}}</p>
+
                     <p class="body" > Bloque genesis</p>
 
                 {%else%}
                     <p class="body">Indice del bloque es: {{bloque["indice"]}}</p>
                     <p class="body">Su hash es: {{bloque["_id"]}}</p>
-                    <p class="body">Fecha: {{bloque["fecha"]}}</p>
+
                     <p class="body">Bloque anterior: {{bloque["prev_hash"]}}</p>
                     <p class="body">Transacciones: </p>
                 {%for transaccion in bloque["transacciones"]%}

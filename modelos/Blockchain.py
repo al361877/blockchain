@@ -2,9 +2,7 @@ import json
 import time
 
 import BlockchainController
-from blockchain.Modelo.Block import Block
-
-from blockchain.datos import BaseDeDatos
+from modelos.Block import Block
 
 
 class Blockchain:
@@ -98,16 +96,8 @@ class Blockchain:
         return (block_hash.startswith(self.trabajo) and block_hash == block.compute_hash())
 
     def prueba_de_trabajo(self, block):
-        """
-        Function that tries different values of nonce to get a hash
-        that satisfies our difficulty criteria.
-        """
-
-
         computed_hash = block.compute_hash()
-
         while not computed_hash.startswith(self.trabajo):
-
             block.Nonce+=1
             computed_hash = block.compute_hash()
 
@@ -115,19 +105,16 @@ class Blockchain:
 
 
     def add_new_transaction(self, transaction):
-        if transaction == " "*len(transaction):
+        #si esta vacia, devuelvo false
+        if transaction.strip() == "":
             return False
 
         #si el bloque que tengo que minar aun no esta lleno, le meto la transacción, si ya lo está, lo mino y añado uno nuevo
-        if(not self.__bloque_sin_minar.completo()):
-            trans=self.__bloque_sin_minar.add_transaccion(transaction)
-        else:
+        if(self.__bloque_sin_minar.completo()):
+            BlockchainController.mine_unconfirmed_block()
+            self.__bloque_sin_minar = Block()
 
-            BlockchainController.mine_unconfirmed_transactions()
-
-            bloqueNuevo = self.__bloque_sin_minar = Block()
-            trans = bloqueNuevo.add_transaccion(transaction)
-
+        trans=self.__bloque_sin_minar.add_transaccion(transaction)
         return trans
 
     def add_transaccion_minada(self,transaccion):
@@ -135,19 +122,12 @@ class Blockchain:
            self.__bloque_sin_minar.add_transaccion_minada(transaccion)
         else:
 
-            BlockchainController.mine_unconfirmed_transactions()
+            BlockchainController.mine_unconfirmed_block()
             bloqueNuevo=self.__bloque_sin_minar=Block()
             bloqueNuevo.add_transaccion_minada(transaccion)
 
     def mine(self):
 
-        """
-        This function serves as an interface to add the pending
-        transactions to the blockchain by adding them to the block
-        and figuring out Proof Of Work.
-        """
-        if not self.genesis:
-            self.crear_genesis_block()
         #cojo el último bloque de la cadena para enlazarlo con el nuevo
         last_block = self.__cadena[-1]
 
@@ -155,7 +135,6 @@ class Blockchain:
         bloque=self.__bloque_sin_minar
         if not bloque.transacciones :
             return -1
-
 
         bloque.indice=last_block.get_indice()+1
 

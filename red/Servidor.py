@@ -1,8 +1,8 @@
 from socket import socket, error
 from threading import Thread
 import json
+from datos import BaseDeDatos
 import BlockchainController
-from blockchain.datos import BaseDeDatos
 
 
 class Client(Thread):
@@ -41,14 +41,14 @@ class Client(Thread):
                     if lista[0] == "Indice":
                         indice=lista[1]
                         #cojo el bloque
-                        bloque=BaseDeDatos.bloqueIndice(indice)
+                        bloque= BaseDeDatos.bloqueIndice(indice)
                         bloqueString = json.dumps(bloque)
                         print("envio bloque",bloqueString)
                         self.conn.send(bytes(bloqueString, "utf-8"))
 
                     #se consulta una transaccion en todos los nodos de la blockchain
                     elif lista[0]=="hashB":
-                        transaccion=BaseDeDatos.verificaTransaccion(lista[1])
+                        transaccion= BaseDeDatos.verificaTransaccion(lista[1])
                         if transaccion:
                             # le digo al cliente que esta ok
                             self.conn.send(bytes("ok", "utf-8"))
@@ -60,7 +60,7 @@ class Client(Thread):
                         # si es un hello, envio mi lista de ips (solo si es el nodo padre, si no lo es, no hace nada)
                         direccionesIP = ""
                         try:
-                            nodos=BaseDeDatos.cargarNodos()
+                            nodos= BaseDeDatos.cargarNodos()
 
                         except:
                             self.conn.send(bytes("no hay nodos", "utf-8"))
@@ -80,14 +80,14 @@ class Client(Thread):
                         self.conn.send(bytes("ok", "utf-8"))
 
                     elif msg=="ultimoBloque":
-                        bloque=BlockchainController.consultaUltimoBloque()
+                        bloque= BlockchainController.consultaUltimoBloque()
                         bloqueString=json.dumps(bloque)
                         print("envio el bloque",bloqueString)
                         self.conn.send(bytes(bloqueString, "utf-8"))
 
                     elif msg=="solicitud":
                         #me pide la blockchain, le devuelvo el len de mi blockchain, y que me vaya pidiendo bloque a bloque
-                        bloque=BaseDeDatos.consultaUltimoBloque()
+                        bloque= BaseDeDatos.consultaUltimoBloque()
                         print(bloque["indice"])
                         self.conn.send(bytes(str(bloque["indice"]),"utf-8"))
 
@@ -114,9 +114,9 @@ class ServidorPrueba(Thread):
     def __init__(self):
         Thread.__init__(self)
         # Esta ip luego será una variable de entorno
-        self.myIP="192.168.0.121"
+        self.myIP="10.129.84.108"
         try:
-            self.clientes=BaseDeDatos.cargarNodos()
+            self.clientes= BaseDeDatos.cargarNodos()
         except:
             self.clientes = []
 

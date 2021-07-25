@@ -1,5 +1,5 @@
 import BlockchainController
-from blockchain.red.servidorPrueba import ServidorPrueba
+from red.Servidor import ServidorPrueba
 
 if __name__=="__main__":
     servidor=ServidorPrueba()

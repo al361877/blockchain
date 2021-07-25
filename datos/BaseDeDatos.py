@@ -9,6 +9,10 @@ from pymongo import MongoClient
 
 myclient = pymongo.MongoClient('mongodb://localhost:27017/')
 
+######################################################################
+#############         CREACION DE TABLAS         #####################
+######################################################################
+
 db=myclient['blockchain']
 bloquesdb=db['bloques']
 transaccionesdb=db['transacciones']
@@ -119,7 +123,7 @@ def consultaTransacciones():
         yield x
 
 def verificaTransaccion(hash):
-    myquery = {"_id": hash}
+    myquery = {"hashDato": hash}
     transaccion=False
     for x in transaccionesdb.find(myquery):
         transaccion=x
@@ -201,11 +205,26 @@ def consultaUltimoLog():
     for x in log:
 
         return x
+def almacenar_hashes(hashDato,hashBlockchain):
+    hashesdb.insert({"hashDato": hashDato, "hashBlockchain": hashBlockchain})
 
+
+
+def consulta_log_hashB(hahsB):
+    myquery = {"hashBlockchain": hahsB}
+    hashes = []
+    for x in hashesdb.find(myquery):
+        hashes.append(x)
+    return hashes
 
 def elimina_logs():
     logsdb.delete_many({})
 
+
+"""
+Esto DEBE ir todo dentro de la tabla logs
+"""
+"""
 ###########################################################
 #############           HASH          #####################
 ###########################################################
@@ -229,6 +248,7 @@ def consulta_hahses_hashB(hahsB):
 def elimina_hashes():
     hashesdb.delete_many({})
 
+"""
 
 if __name__ == "__main__":
     eliminarNodos()

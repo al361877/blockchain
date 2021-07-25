@@ -1,9 +1,7 @@
 from hashlib import sha256
 import json
-import random
-from pprint import pprint
 
-from blockchain.Modelo.Transaccion import Transaccion
+from modelos.Transaccion import Transaccion
 
 
 class Block:
@@ -32,27 +30,23 @@ class Block:
     #lo mina este bloque, pero luego puede que se guarde en otro, porque se haya cerrado antes el programa
     def add_transaccion(self,hashDato):
         transaccion=Transaccion(hashDato)
-
         hashT=transaccion.compute_hash()
-
         #prueba de trabajo
         while(not hashT.startswith(self.trabajo)):
             transaccion.Nonce+=1
             hashT=transaccion.compute_hash()
-
-
         #le doy valor al hash, que hasta ahora no tenia valor
         transaccion.hash=hashT
-
         #es la tupla que voy a almacenar en el bloque
         trans=transaccion.hashDato
         self.transacciones[hashT]=trans
-
         return transaccion
 
     def add_transaccion_minada(self,transaccion):
-
         self.transacciones[transaccion["_id"]]=transaccion["hashDato"]
+
+
+
 
     def set_hash(self,hash):
         self._id=hash
