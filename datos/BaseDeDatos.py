@@ -252,3 +252,4 @@ def elimina_hashes():
 
 if __name__ == "__main__":
     eliminarNodos()
+    eliminarDatos()

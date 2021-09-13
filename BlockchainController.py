@@ -15,7 +15,7 @@ app =  Flask(__name__)
 CONNECTED_NODE_ADDRESS = "http://127.0.0.1:8000"
 
 posts = []
-
+padre="10.129.84.108"
 # la dirección the otros miembros que participan en la red
 peers = set()
 blockchain=Blockchain()
@@ -203,13 +203,13 @@ def construirBloque(bloque):
 
 #este metodo se usa cuando llega un nuevo nodo a la blockchain
 def register_me():
-    nodoPadre="10.129.84.107"
+    nodoPadre=padre
     #enviar un hello al nodo padre, esta ip luego será una variable de entorno
     cliente=Cliente(nodoPadre)
     listaIP=cliente.enviar("hello padre")
 
     addNodo(nodoPadre)
-    myIP="10.129.84.108"
+    myIP="10.129.84.107"
     if listaIP!="no hay nodos":
         for ip in listaIP:
             try:
@@ -231,9 +231,9 @@ def actuaizar():
     este metodo es similar al anterior de registrarme, pero con la diferencia de que se ejecuta cada vez que arranco el programa
     se diferencia sobretodo en que tiene que comparar lo que ya tiene con los nuevos datos para que no guarde cosas repetidas.
     '''
-    cliente=Cliente("10.129.84.107")
+    cliente=Cliente(padre)
     listaIPNueva=cliente.enviar("hello padre")
-    myIP="10.129.84.108"
+    myIP="10.129.84.107"
     #cojo mi lista de ips para comparar si se ha unido alguien nuevo, y si lo ha hecho, agregarlo
     miListaIP=cargarNodos()
 
@@ -265,7 +265,7 @@ def actuaizar():
 
 
 def solicitar_blockchain():
-    cliente=Cliente("10.129.84.107")
+    cliente=Cliente(padre)
     lenBlockchain=cliente.enviar("solicitud")[0]
 
     for i in range(0,int(lenBlockchain)):
